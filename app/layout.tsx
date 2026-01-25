@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Tyler Malone | Software Developer & AI Engineer",
-  description: "Software Developer with expertise in automated workflow design and AI engineering. Currently studying Computer Science at Colorado State University.",
+  title: "Tyler Malone | Software Engineer & AI Engineer",
+  description: "Software Engineer specializing in full-stack development, DevOps, distributed systems, and agentic AI. Available for contract work.",
 };
 
 export default function RootLayout({
