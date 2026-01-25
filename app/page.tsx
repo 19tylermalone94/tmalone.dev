@@ -283,10 +283,21 @@ export default function Home() {
             {/* US Marine Corps */}
             <div className="group">
               <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
-                <div>
-                  <h3 className="text-xl sm:text-2xl font-semibold mb-2">US Marine Corps</h3>
-                  <p className="text-lg sm:text-xl text-[#a0a0a0] mb-2">Refrigeration Technician | Utilities Operations SNCO | Utilities Quality Control SNCO</p>
-                  <p className="text-sm sm:text-base text-[#808080]">Oct. 2018 - Oct. 2022</p>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 mt-1">
+                    <Image 
+                      src="/64px-Seal_of_the_United_States_Marine_Corps.svg.png" 
+                      alt="US Marine Corps EGA"
+                      width={60}
+                      height={60}
+                      className="opacity-90"
+                    />
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-semibold mb-2">US Marine Corps</h3>
+                    <p className="text-lg sm:text-xl text-[#a0a0a0] mb-2">Refrigeration Technician | Utilities Operations SNCO | Utilities Quality Control SNCO</p>
+                    <p className="text-sm sm:text-base text-[#808080]">Oct. 2018 - Oct. 2022</p>
+                  </div>
                 </div>
               </div>
               <p className="text-base sm:text-lg text-[#a0a0a0] leading-relaxed mb-4">
