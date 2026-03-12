@@ -741,7 +741,7 @@ export default function Home() {
             </p>
             <div className="space-y-4">
               <a
-                href="mailto:tylermalone@contraptionsoft.com"
+                href="mailto:tyler@contraptionsoft.com"
                 className="block p-5 sm:p-6 bg-[#1a1a1a] border border-cyan-500/30 rounded-lg hover:border-cyan-500/50 hover:bg-cyan-500/10 transition-all hover:scale-[1.02] group"
               >
                 <div className="text-sm sm:text-base text-cyan-400/70 mb-3 sm:mb-4 flex items-center gap-2">
@@ -749,7 +749,7 @@ export default function Home() {
                   <span>Email</span>
                 </div>
                 <div className="text-base sm:text-lg text-cyan-400 group-hover:text-cyan-300 transition-colors flex items-center gap-2 break-all">
-                  <span>tylermalone@contraptionsoft.com</span>
+                  <span>tyler@contraptionsoft.com</span>
                   <span className="group-hover:translate-x-1 transition-transform flex-shrink-0">→</span>
                 </div>
               </a>
