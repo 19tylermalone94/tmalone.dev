@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Nav from "./components/Nav";
 import Footer from "./components/Footer";
-import TypingHero from "./components/TypingHero";
 import Tags from "./components/Tags";
 
 const skills: { category: string; items: string[] }[] = [
@@ -32,7 +31,6 @@ export default function Home() {
           <div className="hero__left">
             <h1 className="hero__name">Tyler Malone</h1>
             <p className="hero__role">Software Engineer · Full-Stack · DevOps · AI / Agent Systems</p>
-            <TypingHero />
           </div>
           <div className="hero__right">
             <div className="stats">
