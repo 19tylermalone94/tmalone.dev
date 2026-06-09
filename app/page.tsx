@@ -3,7 +3,6 @@ import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 import TypingHero from "./components/TypingHero";
 import Tags from "./components/Tags";
-import { getRecentNotes, formatDate } from "@/content/notes";
 
 const skills: { category: string; items: string[] }[] = [
   { category: "Languages", items: ["Python", "TypeScript", "JavaScript", "Java"] },
@@ -23,8 +22,6 @@ const skills: { category: string; items: string[] }[] = [
 const skillAccents = ["accent-violet", "accent-coral", "accent-green", "accent-amber"];
 
 export default function Home() {
-  const recentNotes = getRecentNotes(3);
-
   return (
     <div>
       <Nav />
@@ -47,7 +44,7 @@ export default function Home() {
                 <p className="stat__label">Availability</p>
                 <p className="stat__value stat__value--accent">
                   <span className="status-dot" />
-                  Open to contract + US or Japan
+                  Open to contract
                 </p>
               </div>
             </div>
@@ -61,14 +58,17 @@ export default function Home() {
             <span className="section-bar__line" />
           </div>
           <p className="prose">
-            I am a software engineer with professional experience in full-stack development, DevOps, distributed systems,
-            and agentic AI. I am proficient in building scalable, secure applications using Spark, HDFS, Next.js, Node.js,
-            Nest.js, PostgreSQL, Python, and Java across GCP, AWS, and Azure.
+            I am a software engineer specializing in agentic AI systems — agent memory, retrieval, and tool use — and the
+            full-stack and DevOps work required to deploy them. Most recently I built WarTable: an AI agent that operates
+            over a user&apos;s connected apps and knowledge bases, a multi-agent system that scores business health, and the
+            supporting infrastructure on GCP. I primarily work with Next.js, Nest.js, Prisma, PostgreSQL, and ChromaDB, and
+            I handle projects from development through deployment.
           </p>
           <p className="prose">
-            With a diverse background spanning from military service to academia and industry, I&apos;ve developed a unique
-            blend of technical and interpersonal skills. I am currently available for contract work and consulting
-            opportunities.
+            I served four years in the US Marine Corps as a refrigeration technician and later managed maintenance for a
+            fleet of generators. I then studied computer science at Colorado State University, where I worked as a teaching
+            assistant, conducted research, and spent a year on a robotics project. I am currently available for contract
+            work and open to roles in the United States or Japan.
           </p>
         </section>
 
@@ -266,33 +266,6 @@ export default function Home() {
                 wartable.ai →
               </a>
             </article>
-          </div>
-        </section>
-
-        {/* ── Notes preview (violet) ─────────────────────────── */}
-        <section className="section accent-violet" id="notes">
-          <div className="section-bar">
-            <span className="section-bar__label">[ NOTES ]</span>
-            <span className="section-bar__line" />
-            <Link href="/notes" className="section-bar__action">
-              view all →
-            </Link>
-          </div>
-
-          <div className="card-grid card-grid--3">
-            {recentNotes.map((note) => (
-              <article className="card" key={note.slug}>
-                <p className="card__date">{formatDate(note.date)}</p>
-                <h3 className="card__title">
-                  <Link href={`/notes/${note.slug}`}>{note.title}</Link>
-                </h3>
-                <p className="prose">{note.description}</p>
-                <div className="card__spacer" />
-                <Link className="card__link" href={`/notes/${note.slug}`}>
-                  read →
-                </Link>
-              </article>
-            ))}
           </div>
         </section>
 

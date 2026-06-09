@@ -10,7 +10,6 @@ export default function Nav() {
         <div className="nav__links">
           <Link href="/#about">About</Link>
           <Link href="/work">Work</Link>
-          <Link href="/notes">Notes</Link>
           <Link href="/#contact">Contact</Link>
         </div>
       </div>
