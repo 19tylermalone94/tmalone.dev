@@ -398,12 +398,12 @@ section:nth-of-type(even) {
   background: var(--surface);
   border: 1px solid var(--border-strong);
   border-left: 3px solid var(--border-strong);
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .timeline__row:hover {
   border-color: var(--accent);
-  box-shadow: 5px 5px 0 0 var(--accent);
+  background: var(--surface-2);
 }
 
 .timeline__row--active {
@@ -466,12 +466,12 @@ section:nth-of-type(even) {
   border: 1px solid var(--border-strong);
   border-top: 3px solid var(--accent);
   padding: var(--space-inner);
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .card:hover {
   border-color: var(--accent);
-  box-shadow: 6px 6px 0 0 var(--accent);
+  background: var(--surface-2);
 }
 
 .card__date {
@@ -541,12 +541,12 @@ section:nth-of-type(even) {
   border: 1px solid var(--border-strong);
   border-left: 3px solid var(--accent);
   padding: 22px;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .skill-block:hover {
   border-color: var(--accent);
-  box-shadow: 4px 4px 0 0 var(--accent);
+  background: var(--surface-2);
 }
 
 .skill-block__head {
@@ -672,12 +672,12 @@ section:nth-of-type(even) {
   border: 1px solid var(--border-strong);
   border-left: 3px solid var(--border-strong);
   margin-bottom: var(--space-gap);
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .entry:hover {
   border-color: var(--accent);
-  box-shadow: 5px 5px 0 0 var(--accent);
+  background: var(--surface-2);
 }
 
 .entry:last-child {
@@ -833,6 +833,19 @@ section:nth-of-type(even) {
 }
 
 @media (max-width: 600px) {
+  /* dial the whole type scale down a notch so nothing feels oversized on phones */
+  :root {
+    --font-size-base: 0.9375rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.2rem;
+    --font-size-xl: 1.4rem;
+    --font-size-2xl: 1.75rem;
+    --font-size-3xl: 2.25rem;
+    --font-size-4xl: 2.75rem;
+  }
+  body {
+    line-height: 1.6;
+  }
   .shell,
   .nav__inner {
     padding-left: 20px;
@@ -848,12 +861,30 @@ section:nth-of-type(even) {
     padding: 48px 0;
   }
   .hero__name {
-    font-size: clamp(2.5rem, 12vw, 3.25rem);
+    font-size: clamp(2.25rem, 11vw, 2.875rem);
+  }
+  .hero__role {
+    font-size: var(--font-size-base);
   }
   .card__title,
   .entry__title {
     font-size: var(--font-size-lg);
   }
+}
+
+/* ───────────────────────────────────────────── scroll reveal */
+/* Only hide content once JS has flagged the document (html.reveal-ready),
+   so the page degrades gracefully with JS disabled. */
+html.reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  will-change: opacity, transform;
+}
+
+html.reveal-ready [data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
 }
 
 /* ───────────────────────────────────────────── motion preferences */
@@ -863,5 +894,11 @@ section:nth-of-type(even) {
   }
   .cursor {
     animation: none;
+  }
+  /* never hide content for users who prefer reduced motion */
+  html.reveal-ready [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }

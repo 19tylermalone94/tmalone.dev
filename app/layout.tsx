@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import ScrollReveal from "./components/ScrollReveal";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-display",
@@ -31,10 +32,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Flag the document before paint so reveal styles apply without a flash,
+            and only when JS is enabled (graceful no-JS fallback). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "document.documentElement.classList.add('reveal-ready')",
+          }}
+        />
+      </head>
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
         {children}
+        <ScrollReveal />
       </body>
     </html>
   );

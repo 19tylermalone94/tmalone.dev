@@ -16,19 +16,19 @@ export default function Work() {
       <Nav />
 
       <main className="shell">
-        <header className="page-head">
+        <header className="page-head" data-reveal>
           <h1>Work &amp; Service Record</h1>
           <p>The full history — engineering, teaching, and four years in the US Marine Corps.</p>
         </header>
 
         {/* ── Engineering (coral) ────────────────────────────── */}
         <section className="section accent-coral">
-          <div className="section-bar">
+          <div className="section-bar" data-reveal>
             <span className="section-bar__label">[ ENGINEERING ]</span>
             <span className="section-bar__line" />
           </div>
 
-          <div className="entry">
+          <div className="entry" data-reveal>
             <div className="entry__meta">
               <div className="org">WarTable by Freestyle Consulting</div>
               <div>Jul 2025 – Jun 2026</div>
@@ -69,7 +69,7 @@ export default function Work() {
             </div>
           </div>
 
-          <div className="entry">
+          <div className="entry" data-reveal>
             <div className="entry__meta">
               <div className="org">HYVV</div>
               <div>Dec 2024 – Dec 2025</div>
@@ -91,7 +91,7 @@ export default function Work() {
             </div>
           </div>
 
-          <div className="entry">
+          <div className="entry" data-reveal>
             <div className="entry__meta">
               <div className="org">Project Sustain, Colorado State University</div>
               <div>Jan 2025 – Aug 2025</div>
@@ -127,7 +127,7 @@ export default function Work() {
             </div>
           </div>
 
-          <div className="entry">
+          <div className="entry" data-reveal>
             <div className="entry__meta">
               <div className="org">Colorado State University</div>
               <div>Aug 2023 – Dec 2025</div>
@@ -143,7 +143,7 @@ export default function Work() {
             </div>
           </div>
 
-          <div className="entry">
+          <div className="entry" data-reveal>
             <div className="entry__meta">
               <div className="org">CSU Robotics Lab</div>
               <div>Jan 2024 – Dec 2025</div>
@@ -180,12 +180,12 @@ export default function Work() {
 
         {/* ── Military service (coral) ───────────────────────── */}
         <section className="section accent-coral">
-          <div className="section-bar">
+          <div className="section-bar" data-reveal>
             <span className="section-bar__label">[ US MARINE CORPS ]</span>
             <span className="section-bar__line" />
           </div>
 
-          <div className="entry">
+          <div className="entry" data-reveal>
             <div className="entry__meta">
               <div className="org">US Marine Corps</div>
               <div>Oct 2018 – Oct 2022</div>
@@ -248,7 +248,7 @@ export default function Work() {
 
         {/* ── Service record (amber) ─────────────────────────── */}
         <section className="section accent-amber">
-          <div className="section-bar">
+          <div className="section-bar" data-reveal>
             <span className="section-bar__label">[ SERVICE RECORD ]</span>
             <span className="section-bar__line" />
           </div>
@@ -256,7 +256,7 @@ export default function Work() {
           <div className="awards">
             <div className="awards__group">
               <h4 className="awards__heading">Technical Training</h4>
-              <div className="awards__item">
+              <div className="awards__item" data-reveal>
                 <p className="awards__name">Basic Refrigeration And Air Conditioning Technician&apos;s Course</p>
                 <Image
                   src="/Reefer.png"
@@ -265,7 +265,7 @@ export default function Work() {
                   height={600}
                 />
               </div>
-              <div className="awards__item">
+              <div className="awards__item" data-reveal>
                 <p className="awards__name">Advanced Engineer Equipment Electrical Systems Technician&apos;s Course</p>
                 <Image
                   src="/ACourse.png"
@@ -278,7 +278,7 @@ export default function Work() {
 
             <div className="awards__group">
               <h4 className="awards__heading">Military Awards</h4>
-              <div className="awards__item">
+              <div className="awards__item" data-reveal>
                 <p className="awards__name">National Defense Service Medal</p>
                 <p className="awards__desc">
                   Awarded for active federal service in the armed forces between June 27, 1950 – July 1954; Jan. 1, 1961 –
@@ -286,21 +286,21 @@ export default function Work() {
                 </p>
                 <Image src="/NN.png" alt="National Defense Service Medal" width={160} height={160} />
               </div>
-              <div className="awards__item">
+              <div className="awards__item" data-reveal>
                 <p className="awards__name">Marine Corps Good Conduct Medal</p>
                 <p className="awards__desc">
                   Awarded to Marines after three consecutive years of honorable and faithful service.
                 </p>
                 <Image src="/GC.png" alt="Marine Corps Good Conduct Medal" width={160} height={160} />
               </div>
-              <div className="awards__item">
+              <div className="awards__item" data-reveal>
                 <p className="awards__name">USMC Sea Service Deployment Ribbon (x3)</p>
                 <p className="awards__desc">
                   Awarded to Marines who complete a deployment at sea or with an overseas unit.
                 </p>
                 <Image src="/SD.png" alt="USMC Sea Service Deployment Ribbon" width={160} height={160} />
               </div>
-              <div className="awards__item">
+              <div className="awards__item" data-reveal>
                 <p className="awards__name">Global War on Terrorism Service Medal</p>
                 <p className="awards__desc">
                   Awarded to military personnel who have served in support of operations related to the Global War on
@@ -312,7 +312,7 @@ export default function Work() {
 
             <div className="awards__group">
               <h4 className="awards__heading">Special Military Recognitions</h4>
-              <div className="awards__item">
+              <div className="awards__item" data-reveal>
                 <p className="awards__name">Meritorious Promotion to Noncommissioned Officer</p>
                 <Image
                   src="/promotion.png"
@@ -321,7 +321,7 @@ export default function Work() {
                   height={600}
                 />
               </div>
-              <div className="awards__item">
+              <div className="awards__item" data-reveal>
                 <p className="awards__name">Soochow Creek Medal</p>
                 <p className="awards__desc">
                   Awarded by the 4th Marine Regiment Commanding Officer, Colonel Tracy, for exemplary performance of duties
@@ -329,7 +329,7 @@ export default function Work() {
                 </p>
                 <Image src="/SoochowAward.png" alt="Soochow Creek Medal" width={800} height={600} />
               </div>
-              <div className="awards__item">
+              <div className="awards__item" data-reveal>
                 <p className="awards__name">Meritorious Mast</p>
                 <p className="awards__desc">
                   Won 1st place in company shooting competition, after which I competed against the Japanese Self-Defense

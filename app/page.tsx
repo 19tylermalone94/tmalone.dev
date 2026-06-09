@@ -53,7 +53,7 @@ export default function Home() {
 
         {/* ── About (violet) ─────────────────────────────────── */}
         <section className="section accent-violet" id="about">
-          <div className="section-bar">
+          <div className="section-bar" data-reveal>
             <span className="section-bar__label">[ ABOUT ]</span>
             <span className="section-bar__line" />
           </div>
@@ -74,7 +74,7 @@ export default function Home() {
 
         {/* ── Experience (coral) ─────────────────────────────── */}
         <section className="section accent-coral" id="experience">
-          <div className="section-bar">
+          <div className="section-bar" data-reveal>
             <span className="section-bar__label">[ EXPERIENCE ]</span>
             <span className="section-bar__line" />
             <Link href="/work" className="section-bar__action">
@@ -83,7 +83,7 @@ export default function Home() {
           </div>
 
           <div className="timeline">
-            <div className="timeline__row timeline__row--active">
+            <div className="timeline__row timeline__row--active" data-reveal>
               <div className="timeline__meta">
                 <p className="timeline__company">WarTable by Freestyle Consulting</p>
                 <p className="timeline__role">Software Engineer (Full-Stack &amp; DevOps) — Contract</p>
@@ -102,7 +102,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="timeline__row">
+            <div className="timeline__row" data-reveal>
               <div className="timeline__meta">
                 <p className="timeline__company">HYVV</p>
                 <p className="timeline__role">Software Engineer (Full-Stack &amp; DevOps) — Contract</p>
@@ -119,7 +119,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="timeline__row">
+            <div className="timeline__row" data-reveal>
               <div className="timeline__meta">
                 <p className="timeline__company">Project Sustain, CSU</p>
                 <p className="timeline__role">Software Engineer &amp; Research Assistant</p>
@@ -138,7 +138,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="timeline__row">
+            <div className="timeline__row" data-reveal>
               <div className="timeline__meta">
                 <p className="timeline__company">CSU Robotics Lab</p>
                 <p className="timeline__role">Robotics Research Volunteer</p>
@@ -156,7 +156,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="timeline__row">
+            <div className="timeline__row" data-reveal>
               <div className="timeline__meta">
                 <p className="timeline__company">Colorado State University</p>
                 <p className="timeline__role">Undergraduate Teaching Assistant</p>
@@ -172,7 +172,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="timeline__row">
+            <div className="timeline__row" data-reveal>
               <div className="timeline__meta">
                 <p className="timeline__company">US Marine Corps</p>
                 <p className="timeline__role">Refrigeration Tech · Utilities QC NCO</p>
@@ -195,13 +195,13 @@ export default function Home() {
 
         {/* ── Education (amber) ──────────────────────────────── */}
         <section className="section accent-amber" id="education">
-          <div className="section-bar">
+          <div className="section-bar" data-reveal>
             <span className="section-bar__label">[ EDUCATION ]</span>
             <span className="section-bar__line" />
           </div>
 
           <div className="timeline">
-            <div className="timeline__row">
+            <div className="timeline__row" data-reveal>
               <div className="timeline__meta">
                 <p className="timeline__company">Colorado State University</p>
                 <p className="timeline__role">B.S. Computer Science</p>
@@ -222,13 +222,13 @@ export default function Home() {
 
         {/* ── Projects (emerald) ─────────────────────────────── */}
         <section className="section accent-green" id="projects">
-          <div className="section-bar">
+          <div className="section-bar" data-reveal>
             <span className="section-bar__label">[ PROJECTS ]</span>
             <span className="section-bar__line" />
           </div>
 
           <div className="card-grid">
-            <article className="card">
+            <article className="card" data-reveal>
               <p className="card__date">Aug 2025 – Present</p>
               <h3 className="card__title">
                 <Link href="https://www.mealplangenerator.ai" target="_blank" rel="noopener noreferrer">
@@ -247,7 +247,7 @@ export default function Home() {
               </a>
             </article>
 
-            <article className="card">
+            <article className="card" data-reveal>
               <p className="card__date">Jul 2025 – Jun 2026</p>
               <h3 className="card__title">
                 <Link href="https://wartable.ai" target="_blank" rel="noopener noreferrer">
@@ -271,14 +271,14 @@ export default function Home() {
 
         {/* ── Skills (rotating accents) ──────────────────────── */}
         <section className="section accent-violet" id="skills">
-          <div className="section-bar">
+          <div className="section-bar" data-reveal>
             <span className="section-bar__label">[ SKILLS ]</span>
             <span className="section-bar__line" />
           </div>
 
           <div className="skills-grid">
             {skills.map((block, i) => (
-              <div className={`skill-block ${skillAccents[i % skillAccents.length]}`} key={block.category}>
+              <div className={`skill-block ${skillAccents[i % skillAccents.length]}`} key={block.category} data-reveal>
                 <h3 className="skill-block__head">{block.category}</h3>
                 <ul className="skill-block__list">
                   {block.items.map((item) => (
@@ -292,7 +292,7 @@ export default function Home() {
 
         {/* ── Contact (per-link accents) ─────────────────────── */}
         <section className="section accent-coral" id="contact">
-          <div className="section-bar">
+          <div className="section-bar" data-reveal>
             <span className="section-bar__label">[ CONTACT ]</span>
             <span className="section-bar__line" />
           </div>
@@ -302,7 +302,7 @@ export default function Home() {
               I&apos;m available for contract work and consulting opportunities — full-stack development, agentic AI, or
               DevOps. Always open to discussing new projects, interesting challenges, or permanent roles.
             </p>
-            <div className="contact">
+            <div className="contact" data-reveal>
               <div className="contact__row accent-coral">
                 <span className="contact__label">email</span>
                 <a href="mailto:tyler@contraptionsoft.com">tyler@contraptionsoft.com</a>
