@@ -1,36 +1,36 @@
-This is Tyler Malone's personal website built with [Next.js](https://nextjs.org) and featuring a modern dark theme.
+# tylermmprojects.com
 
-## Getting Started
+Personal portfolio for **Tyler Malone** — Software Engineer (full-stack · DevOps · agentic AI).
 
-First, run the development server:
+A single-page static site with no build step. The page is a scroll **descent from space to the ocean floor**: each section is an atmospheric/terrestrial layer (space → exosphere → mountains → forest → coast → underwater), backed by real public-domain imagery.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+Plain **HTML / CSS / JS** — no framework, no build.
+
+```
+index.html              markup (content verbatim from site-content.md)
+assets/css/styles.css    the cosmic theme
+assets/js/main.js        starfield, scroll reveals, parallax, progress bar
+assets/img/*.jpg         optimized imagery
+site-content.md          source copy of all page content
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Run locally
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Just open `index.html`, or serve it:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+python3 -m http.server 8000
+# → http://localhost:8000
+```
 
-## Learn More
+## Deploy
 
-To learn more about Next.js, take a look at the following resources:
+This is a **static site** — there is no build command. On Vercel, set the project's
+**Framework Preset to "Other" (no build)** and serve from the repository root.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Image credits
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+All imagery is public domain or CC0: **NASA / ESA / STScI** (space & atmosphere),
+**USGS / NPS / NARA** and **Wikimedia Commons / Unsplash CC0** (landscapes, underwater).
