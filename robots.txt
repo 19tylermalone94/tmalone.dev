@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://tylermmprojects.com/sitemap.xml
+Sitemap: https://www.tylermmprojects.com/sitemap.xml
