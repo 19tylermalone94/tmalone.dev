@@ -40,7 +40,7 @@
     <a href="#contact">Contact</a>
   </nav>
   <div class="nav__actions">
-    <button type="button" class="nav__fly" id="flyBtn" aria-pressed="false" aria-label="Fly a rocket" title="Fly a rocket — WASD or arrow keys">
+    <button type="button" class="nav__fly" id="flyBtn" aria-pressed="false" aria-label="Fly a rocket and fight aliens" title="Fly &amp; fight — WASD/arrows to move, click or Space to shoot, Shift to boost">
       <span class="nav__fly-ico" aria-hidden="true">🚀</span>
     </button>
     <a href="#contact" class="nav__cta">Available</a>
@@ -84,6 +84,37 @@
   <button class="dpad__btn dpad__left"  data-dir="left">◀</button>
   <button class="dpad__btn dpad__right" data-dir="right">▶</button>
   <button class="dpad__btn dpad__down"  data-dir="down">▼</button>
+</div>
+
+<!-- ============ GAME (combat layer · HUD · achievements) ============ -->
+<canvas class="game-layer" id="gameLayer" hidden aria-hidden="true"></canvas>
+<div class="hit-flash" id="hitFlash" aria-hidden="true"></div>
+
+<div class="hud" id="hud" hidden aria-hidden="true">
+  <div class="hud__bar">
+    <div class="hud__health" title="Hull integrity">
+      <span class="hud__health-fill" id="healthFill" data-lvl="ok"></span>
+    </div>
+    <div class="hud__stats">
+      <span><b id="hudTime">0.0s</b> alive</span>
+      <span><b id="hudKills">0</b> kills</span>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<div class="gameover" id="gameover" hidden aria-hidden="true">
+  <div class="gameover__panel" role="dialog" aria-label="Game over">
+    <h2 class="gameover__title">You blew up</h2>
+    <p class="gameover__sub" id="goSub"></p>
+    <div class="gameover__stats" id="goStats"></div>
+    <div class="gameover__ach" id="goAch"></div>
+    <div class="gameover__actions">
+      <button type="button" class="gameover__btn gameover__btn--go" id="goAgain">Fly again</button>
+      <button type="button" class="gameover__btn" id="goClose">Done</button>
+    </div>
+  </div>
 </div>
 
 <main>

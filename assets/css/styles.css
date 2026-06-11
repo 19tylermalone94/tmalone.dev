@@ -212,6 +212,139 @@ main, .nav, .foot { position: relative; z-index: 2; }
   .dpad.is-on { display: grid; }
 }
 
+/* ============================================================
+   GAME — combat layer, HUD, achievements, game over
+   ============================================================ */
+.game-layer {
+  position: fixed; inset: 0; z-index: 64; pointer-events: none;
+}
+.game-layer[hidden] { display: none !important; }
+
+/* red vignette when the hull takes a hit */
+.hit-flash {
+  position: fixed; inset: 0; z-index: 118; pointer-events: none;
+  opacity: 0; transition: opacity .45s ease;
+  background: radial-gradient(circle at 50% 50%, rgba(224,40,80,0) 32%, rgba(224,40,80,0.55) 100%);
+}
+
+/* HUD — hull bar + run stats */
+.hud {
+  position: fixed; top: 4.4rem; left: 50%; transform: translateX(-50%);
+  z-index: 70; pointer-events: none;
+}
+.hud[hidden] { display: none !important; }
+.hud__bar {
+  display: flex; flex-direction: column; align-items: center; gap: .5rem;
+  padding: .6rem .9rem;
+  background: rgba(7,10,22,0.6); backdrop-filter: blur(10px);
+  border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 6px 26px rgba(0,0,0,0.4);
+}
+.hud__health {
+  width: min(46vw, 260px); height: 10px; border-radius: 6px; overflow: hidden;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08);
+}
+.hud__health-fill {
+  display: block; height: 100%; width: 100%; border-radius: 6px;
+  transition: width .12s linear, background .3s;
+  background: linear-gradient(90deg, #7fd6e8, #9af0c0);
+  box-shadow: 0 0 12px rgba(127,214,232,0.6);
+}
+.hud__health-fill[data-lvl="warn"] {
+  background: linear-gradient(90deg, #e9c987, #f0b86a);
+  box-shadow: 0 0 12px rgba(233,201,135,0.6);
+}
+.hud__health-fill[data-lvl="low"] {
+  background: linear-gradient(90deg, #e08aa8, #e0405a);
+  box-shadow: 0 0 14px rgba(224,64,90,0.7);
+  animation: hpPulse .6s ease-in-out infinite;
+}
+@keyframes hpPulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+.hud__stats {
+  display: flex; gap: 1.1rem;
+  font-family: var(--f-mono); font-size: .72rem; letter-spacing: .03em;
+  color: var(--text-dim); text-transform: uppercase;
+}
+.hud__stats b { color: var(--star); font-weight: 600; }
+
+/* achievement toasts */
+.toasts {
+  position: fixed; right: 1.1rem; top: 5rem; z-index: 120;
+  display: flex; flex-direction: column; gap: .55rem;
+  pointer-events: none; max-width: min(82vw, 320px);
+}
+.toast {
+  display: flex; align-items: center; gap: .7rem;
+  padding: .6rem .8rem; border-radius: 12px;
+  background: rgba(10,14,28,0.82); backdrop-filter: blur(12px);
+  border: 1px solid rgba(233,201,135,0.4);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.45);
+  transform: translateX(120%); opacity: 0;
+  transition: transform .45s var(--ease), opacity .45s var(--ease);
+}
+.toast.in { transform: translateX(0); opacity: 1; }
+.toast__ico { font-size: 1.4rem; line-height: 1; filter: drop-shadow(0 0 6px rgba(233,201,135,0.6)); }
+.toast__txt { display: flex; flex-direction: column; line-height: 1.25; }
+.toast__txt b { color: var(--gold); font-size: .86rem; }
+.toast__txt span { color: var(--text-dim); font-size: .74rem; }
+
+/* game-over overlay */
+.gameover {
+  position: fixed; inset: 0; z-index: 200;
+  display: grid; place-items: center; padding: 1.4rem;
+  background: rgba(2,3,8,0.72); backdrop-filter: blur(6px);
+  opacity: 0; transition: opacity .4s ease; pointer-events: auto;
+}
+.gameover[hidden] { display: none !important; }
+.gameover.in { opacity: 1; }
+.gameover__panel {
+  width: min(92vw, 460px); padding: 1.8rem 1.6rem; text-align: center;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(22,15,58,0.9), rgba(11,15,32,0.92));
+  border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+  transform: translateY(12px) scale(.98); transition: transform .45s var(--ease);
+}
+.gameover.in .gameover__panel { transform: none; }
+.gameover__title {
+  font-family: var(--f-display); font-weight: 600;
+  font-size: clamp(2rem, 7vw, 3rem); color: var(--star); line-height: 1; margin-bottom: .3rem;
+}
+.gameover__sub { color: var(--text-dim); font-style: italic; margin-bottom: 1.2rem; }
+.gameover__stats { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin-bottom: 1.1rem; }
+.gostat {
+  padding: .7rem; border-radius: 12px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--line-soft);
+}
+.gostat b { display: block; font-family: var(--f-mono); font-size: 1.3rem; color: var(--star); }
+.gostat span { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-mute); }
+.gostat.is-best { border-color: rgba(233,201,135,0.5); box-shadow: 0 0 18px rgba(233,201,135,0.18); }
+.gostat em { display: block; color: var(--gold); font-style: normal; font-size: .58rem; margin-top: .15rem; letter-spacing: .08em; }
+.gameover__ach { margin-bottom: 1.3rem; }
+.gameover__ach-title {
+  font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
+  color: var(--text-mute); margin-bottom: .5rem;
+}
+.gameover__chips { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center; }
+.chip {
+  font-size: .72rem; padding: .3rem .55rem; border-radius: 999px;
+  background: rgba(233,201,135,0.12); border: 1px solid rgba(233,201,135,0.3); color: var(--gold);
+}
+.gameover__actions { display: flex; gap: .7rem; justify-content: center; }
+.gameover__btn {
+  font-family: var(--f-body); font-size: .86rem; padding: .6rem 1.2rem;
+  border-radius: 999px; cursor: pointer; color: var(--text);
+  background: transparent; border: 1px solid var(--line);
+  transition: background .25s, border-color .25s, color .25s, box-shadow .25s;
+}
+.gameover__btn:hover { border-color: var(--cyan); color: var(--star); }
+.gameover__btn--go { background: var(--cyan); color: #062028; border-color: var(--cyan); font-weight: 600; }
+.gameover__btn--go:hover { background: #9be4f2; color: #062028; box-shadow: 0 0 18px rgba(127,214,232,0.5); }
+
+@media (prefers-reduced-motion: reduce) {
+  .toast, .gameover, .gameover__panel { transition: none; }
+  .hud__health-fill[data-lvl="low"] { animation: none; }
+}
+
 @media (max-width: 880px) {
   .nav__links { display: none; }
 }
