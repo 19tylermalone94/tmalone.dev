@@ -1,4 +1,4 @@
-# tylermmprojects.com
+# tmalone.dev
 
 Personal portfolio for **Tyler Malone** — Software Engineer (full-stack · DevOps · agentic AI).
 
