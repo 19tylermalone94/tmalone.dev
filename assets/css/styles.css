@@ -39,6 +39,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; background: #000; }
+html.flying { scroll-behavior: auto; }
 
 body {
   font-family: var(--f-body);
@@ -123,6 +124,94 @@ main, .nav, .foot { position: relative; z-index: 2; }
   transition: background .3s, border-color .3s, color .3s;
 }
 .nav__cta:hover { background: var(--gold); color: #1a1205; border-color: var(--gold); }
+
+.nav__actions { display: flex; align-items: center; gap: .7rem; }
+
+/* fly toggle button */
+.nav__fly {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--cyan);
+  background: transparent; cursor: pointer;
+  border: 1px solid rgba(127,214,232,0.35); border-radius: 50%;
+  width: 2.2rem; height: 2.2rem; padding: 0;
+  transition: background .3s, border-color .3s, color .3s, box-shadow .3s;
+}
+.nav__fly-ico { font-size: 1rem; line-height: 1; transition: transform .4s var(--ease); }
+.nav__fly:hover { background: rgba(127,214,232,0.1); border-color: var(--cyan); color: var(--star); }
+.nav__fly:hover .nav__fly-ico { transform: translateY(-2px) rotate(-12deg); }
+.nav__fly[aria-pressed="true"] {
+  background: var(--cyan); color: #062028; border-color: var(--cyan);
+  box-shadow: 0 0 18px rgba(127,214,232,0.5);
+}
+.nav__fly[aria-pressed="true"] .nav__fly-ico { transform: rotate(-35deg); }
+
+/* ============================================================
+   FLIGHT MODE — drive a rocket to scroll the page
+   ============================================================ */
+.rocket {
+  position: fixed; left: 0; top: 0;
+  width: 48px; height: 84px;
+  margin-left: -24px; margin-top: -42px;   /* center on the (px,py) origin */
+  z-index: 65; pointer-events: none;
+  transform: translate3d(-100px, -100px, 0);
+  will-change: transform;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.45)) drop-shadow(0 0 14px rgba(127,214,232,0.45));
+}
+.rocket[hidden] { display: none; }
+.rocket__svg { display: block; overflow: visible; }
+
+/* afterburner — Shift held */
+.rocket.is-boosting {
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5)) drop-shadow(0 0 22px rgba(127,214,232,0.85));
+}
+.rocket.is-boosting .rocket__flame {
+  background: linear-gradient(180deg, #ffffff 0%, #fff0c0 22%, var(--cyan) 55%, rgba(127,214,232,0) 100%);
+  filter: blur(0.4px) drop-shadow(0 0 14px rgba(127,214,232,0.9));
+}
+
+/* exhaust flame — height driven by --thrust (0..1) from JS */
+.rocket__flame {
+  --thrust: 0;
+  position: absolute; left: 50%; top: 76px;
+  width: calc(11px + 7px * var(--thrust));
+  height: calc(6px + 30px * var(--thrust));
+  transform: translateX(-50%);
+  border-radius: 50% 50% 50% 50% / 22% 22% 78% 78%;
+  background: linear-gradient(180deg, #fff6d8 0%, var(--gold) 26%, var(--rose) 62%, rgba(224,138,168,0) 100%);
+  opacity: calc(0.25 + 0.75 * var(--thrust));
+  filter: blur(0.4px) drop-shadow(0 0 8px rgba(233,201,135,0.7));
+  transform-origin: 50% 0%;
+  animation: flameFlicker .09s steps(2) infinite;
+}
+@keyframes flameFlicker {
+  0%   { transform: translateX(-50%) scaleY(1) scaleX(1); }
+  100% { transform: translateX(-52%) scaleY(0.86) scaleX(1.12); }
+}
+
+/* on-screen d-pad (touch) */
+.dpad {
+  position: fixed; right: 1.1rem; bottom: 1.4rem; z-index: 66;
+  display: none;
+  grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px);
+  gap: 6px; touch-action: none;
+}
+.dpad[hidden] { display: none !important; }
+.dpad__btn {
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: var(--star); cursor: pointer;
+  background: rgba(7,10,22,0.7); backdrop-filter: blur(10px);
+  border: 1px solid var(--line); border-radius: 12px;
+  -webkit-user-select: none; user-select: none;
+}
+.dpad__btn:active { background: rgba(127,214,232,0.25); border-color: var(--cyan); }
+.dpad__up    { grid-column: 2; grid-row: 1; }
+.dpad__left  { grid-column: 1; grid-row: 2; }
+.dpad__right { grid-column: 3; grid-row: 2; }
+.dpad__down  { grid-column: 2; grid-row: 3; }
+@media (hover: none) and (pointer: coarse) {
+  .dpad.is-on { display: grid; }
+}
+
 @media (max-width: 880px) {
   .nav__links { display: none; }
 }
