@@ -121,6 +121,12 @@
         <h3 class="entry__org">WarTable by Freestyle Consulting</h3>
         <p class="entry__role">Software Engineer (Full-Stack &amp; DevOps) — Contract</p>
         <div class="entry__text">
+          <ul class="entry__bullets">
+            <li>Built Athena AI agent (web + mobile) with 3,000+ app integrations via Pipedream; custom MCP tool filtering and dynamic client MCP server support</li>
+            <li>ChromaDB knowledge base with Drive sync, folder watching, per-file ignore controls, mem0 memory at user + workspace scope, WebSocket streaming</li>
+            <li>Multi-agent WBHI scores business health; feedback loop generates tasks with predicted score increases and agentic verification</li>
+            <li>Routines scheduler, billing/credits/quotas; isolated admin app with direct DB access; GCP Cloud Run via GitHub Actions + Docker</li>
+          </ul>
           <p>Took WarTable from nothing to a production application built around Athena, an AI agent users chat with on the web and on mobile. Athena can connect to roughly 3,000 apps through Pipedream Connect, and I built a filtering layer that lets users turn individual MCP server tools on or off, plus support for dynamic client MCP servers so users can plug in their own.</p>
           <p>I built the knowledge base system on ChromaDB: users connect and browse their Drive apps and sync files into knowledge bases, where document contents are extracted, chunked, and embedded (or summarized), and both Athena and the WBHI draw on those alongside the connected apps. Syncing is automatic — users can watch a folder, get a WarTable notification when new files land, and choose to sync all, some, or none, with an ignore feature for files they want skipped. Memory is handled with mem0, scoped at both the user and workspace level, and real-time notifications and AI response streaming run over WebSockets.</p>
           <p>I built the agent orchestration behind the WarTable Business Health Index (WBHI), where agents divide and conquer across a user's connected apps and notes, discuss findings among themselves, and produce a score for how the business is doing. On top of it I added a guided feedback loop: tasks are generated from your last evaluation, each with a predicted score increase and a definition of done, followed by an agentic verification step that checks whether the requirements were genuinely met — keeping the score honest and everyone accountable.</p>
@@ -145,6 +151,10 @@
         <h3 class="entry__org">HYVV</h3>
         <p class="entry__role">Software Engineer (Full-Stack &amp; DevOps) — Contract</p>
         <div class="entry__text">
+          <ul class="entry__bullets">
+            <li>Conversational agent + product/feature generator on OpenAI API — before MCP and heavy tool use became standard</li>
+            <li>Became sole engineer after team departure; owned full GCP infrastructure, CI/CD via GitHub Actions, and database</li>
+          </ul>
           <p>Built early AI features for the platform on the OpenAI API. One was a conversational agent backed by a clipboard-style questionnaire and talking points that extracted context from users so the platform could plan and carry out tasks for their business. Another let users generate products and features — complete with images — from a single prompt. This was early 2025, when AI apps were still mostly structured output behind a button, before heavy tool use or MCP.</p>
           <p>After the other engineers separated from the company, I took responsibility for the entire development pipeline — running everything on GCP, handling CI/CD through GitHub Actions, and managing the database.</p>
         </div>
@@ -167,6 +177,11 @@
         <h3 class="entry__org">Project Sustain, Colorado State University</h3>
         <p class="entry__role">Software Engineer &amp; Research Assistant</p>
         <div class="entry__text">
+          <ul class="entry__bullets">
+            <li>Statistics suite for RamDesk: Python endpoints feeding frontend graphs of student grades, submission counts, and timing</li>
+            <li>Bibliography verification system using OpenAI structured output + multi-engine web scraping (DDG, Bing, Google) via Selenium in Docker</li>
+            <li>Docker worker pipeline, admin session views, Canvas API integrations, HoneyComb UAV contribution; REI Undergraduate Research Stipend</li>
+          </ul>
           <p>My first feature on RamDesk — the CSU computer-science department's platform — was a statistics suite: Python backend endpoints feeding frontend graphs and plots that surface student grades, submission counts, submission timing, and similar metrics.</p>
           <p>I then extended a tool built to detect AI-written student papers by adding a system that flags suspicious references in a paper's bibliography. It uses OpenAI structured output to extract citation details from any format (MLA and the rest), then cross-checks that metadata against the open web. The checker tries the cheapest signal first — a DOI if there is one, then a URL, and finally an author/title/year lookup that actually has to search — and runs across DuckDuckGo, Bing, and Google so a rate limit on one engine falls through to the others. It drives Selenium with Firefox inside a container; getting past bot detection is hard, so the system deliberately errs toward false negatives, only flagging a reference when nothing checks out.</p>
           <p>The verification work ran in Docker and was dispatched to worker machines, since the web-automation side is memory-heavy — solid, hands-on Docker experience. I also built an admin view showing who is currently logged in and when each user last signed in, generated student profile pictures through the Canvas API, and worked constantly against the Canvas LMS API — requesting scopes through my team lead — to build grading and inspection features, plus faster replacements for things the sluggish Canvas web shell already does. Along the way I helped produce tutorial videos and user-facing documentation, and contributed to HoneyComb, a UAV/AI drone-swarm system for agricultural intelligence. I received the REI Undergraduate Research Stipend in Summer 2025.</p>
@@ -190,6 +205,9 @@
         <h3 class="entry__org">Colorado State University</h3>
         <p class="entry__role">Undergraduate Teaching Assistant</p>
         <div class="entry__text">
+          <ul class="entry__bullets">
+            <li>Taught Python, Java, and Software Development to 200+ students per semester; built labs and course materials</li>
+          </ul>
           <p>I taught Python (Fall 2023), Java (Spring 2024), and Software Development (Fall 2024 onward). I mentored more than 200 students each semester in coding, debugging, and software best practices, and I developed labs and course materials.</p>
         </div>
         <ul class="chips" aria-label="Technologies">
@@ -211,6 +229,11 @@
         <h3 class="entry__org">CSU Robotics Lab</h3>
         <p class="entry__role">Robotics Research Volunteer</p>
         <div class="entry__text">
+          <ul class="entry__bullets">
+            <li>Mastered Fetch robot in ROS/Gazebo simulation — AR tags, RViz monitoring, millimeter-vs-meter config quirks</li>
+            <li>Validated simulation on real hardware; scripted safety resets; SLAM-mapped the CS building lobby at night</li>
+            <li>Halloween demo: YOLO person detection → ROS navigation → Ghostbusters TTS + candy handoff from robot arm; Unity–ROS2 bridge for TurtleBot</li>
+          </ul>
           <p>A year of unpaid, volunteer robotics research at CSU — I took it for the chance to work with expensive hardware. A friend from the video game dev club I'd done game jams with got me into the lab before he transferred schools. The lab had an old ROS-based Fetch robot and a newer ROS2 robot I worked with virtually. My first task was to master the Fetch in simulation: I spent about a month buried in the ROS and Fetch docs, running the demos, and learning the fiddly details — placing AR tags in Gazebo, catching when configs are in meters versus millimeters, lighting, and driving and monitoring the robot through RViz.</p>
           <p>Next I checked whether the physical robot still worked, now that the student who had been running it was gone, so I spent several nights verifying that everything I'd done in simulation held up on real hardware, writing scripts to reset the robot to known positions while testing routines and keeping it well clear of obstacles. Late one night, with the building empty, I mapped the lobby of the CS building using ROS's Fetch navigation and mapping nodes, building an occupancy map from the LIDAR and laser scans and marking out no-go zones.</p>
           <p>On Halloween we ran a demo on that map: Fetch used ROS navigation and localization plus a bit I wrote with YOLO to spot a person, then roamed to a waypoint, looked around, picked someone, rolled up playing Ghostbusters, delivered a Halloween joke in spooky TTS, extended its arm to hand over candy from a pumpkin bucket, and tucked and scurried off to the next waypoint. I also started a project bridging the Unity game engine to ROS2 for research with TurtleBot.</p>
@@ -234,6 +257,12 @@
         <h3 class="entry__org">US Marine Corps</h3>
         <p class="entry__role">Refrigeration Technician · Utilities Operations SNCO · Utilities Quality Control SNCO</p>
         <div class="entry__text">
+          <ul class="entry__bullets">
+            <li>Refrigeration tech in 4th Marines, 3rd Division; scope grew from HVAC/R to electrical systems, diesel generators, and water purification</li>
+            <li>QC NCO managing 50+ AMMPS generator fleet (1.5–30kW, Cummins/Kubota/Yanmar); extended responsibility to combat engineer equipment</li>
+            <li>Designed MWX power plans; JLTV tactical driving instructor; kept a failing 5kW generator running by hand for 3 days to support comms and fire support</li>
+            <li>Soochow Creek Medal and Meritorious Mast; color guard, 292/300 PFT, meritorious promotions; started coding in 2021 on freeCodeCamp</li>
+          </ul>
           <p>I served as a Meritorious Corporal in the 4th Marines, 3rd Marine Division. I started as a refrigeration technician — air conditioning and HVAC/R — reading schematics, troubleshooting from technical manuals, and repairing equipment, and my scope quickly grew beyond AC to electrical systems, diesel-engine generators, and water purification systems, along with the inventory and maintenance they required.</p>
           <p>I moved up to Quality Control NCO and effectively became the operator-maintenance manager for the section. Most equipment had tasks the operator was responsible for and others handled at a different echelon — scheduled or corrective — and the program was a mess when I arrived. I brought our entire generator fleet under control: more than fifty AMMPS sets ranging from 1.5kW to 30kW, powered by Cummins, Kubota, and Yanmar engines. I owned the scheduled maintenance while a counterpart handled corrective, tracking technician sheets, scheduling services, moving equipment, and ordering parts through a clunky maintenance system where every level of the chain of command had its own rules for how fields should be filled in and categorized. You would think it could scan a technical manual, match a manufacturer ID, and load the checklists and intervals automatically — it could not. Once it was sorted, it ran smoothly. I was trusted enough with the maintenance-management process that I was also put in charge of the company's combat engineer equipment — heavy demolition and construction gear — even though we had no combat engineers.</p>
           <p>At MWX — the Marine Corps' largest field exercise, at 29 Palms — I designed the power plan and the full packing list for power operations, plus several on-base operations, and was relied on heavily. After a vehicle rollover I was moved onto tactical driving when I mentioned I held a license, and ran some genuinely gnarly JLTV driving courses. In the field I worked as the engineer, out with a couple of generators, cables, and breakers, constantly packing up, repositioning, and concealing in terrain and canyons during a notional war exercise. My 5kW set started leaking oil around the filter with no way to get parts forward, so I fell back to a far less forgiving backup — a dirty tank and a temperament where you could look at it wrong and it would quit. I spent three days more or less head-down in that machine, working the throttle by hand and siphoning fuel to keep it alive long enough for the comms and fire-support teams to do their jobs.</p>
