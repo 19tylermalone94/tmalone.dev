@@ -789,4 +789,87 @@
       py = clamp(py, MARGIN, innerHeight - MARGIN);
     }, { passive: true });
   })();
+
+  /* ---- Experience entry modals ---- */
+  (function () {
+    const timeline = document.querySelector(".timeline");
+    const modal = document.getElementById("entryModal");
+    if (!timeline || !modal) return;
+
+    const panel = modal.querySelector(".entry-modal__panel");
+    const closeBtn = document.getElementById("modalClose");
+    const modalLayer = document.getElementById("modalLayer");
+    const modalOrg = document.getElementById("modalOrg");
+    const modalRole = document.getElementById("modalRole");
+    const modalDate = document.getElementById("modalDate");
+    const modalContent = document.getElementById("modalContent");
+
+    let focusBefore = null;
+
+    function openModal(entry) {
+      const layer = entry.getAttribute("data-layer") || "";
+      const alt = entry.getAttribute("data-alt") || "";
+      const org = entry.querySelector(".entry__org");
+      const role = entry.querySelector(".entry__role");
+      const date = entry.querySelector(".entry__date");
+      const detail = entry.querySelector(".entry__detail");
+
+      if (modalLayer) modalLayer.textContent = layer + (alt ? " · " + alt : "");
+      if (modalOrg && org) modalOrg.textContent = org.textContent;
+      if (modalRole && role) modalRole.textContent = role.textContent;
+      if (modalDate && date) modalDate.textContent = date.textContent;
+      if (modalContent && detail) modalContent.innerHTML = detail.innerHTML;
+      if (panel) panel.scrollTop = 0;
+
+      focusBefore = document.activeElement;
+      modal.hidden = false;
+      modal.removeAttribute("aria-hidden");
+      document.body.style.overflow = "hidden";
+      requestAnimationFrame(() => {
+        modal.classList.add("in");
+        if (closeBtn) closeBtn.focus();
+      });
+    }
+
+    function closeModal() {
+      modal.classList.remove("in");
+      modal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      const done = () => {
+        modal.hidden = true;
+        if (focusBefore) focusBefore.focus();
+      };
+      modal.addEventListener("transitionend", done, { once: true });
+    }
+
+    timeline.addEventListener("click", (e) => {
+      if (document.documentElement.classList.contains("flying")) return;
+      const card = e.target.closest(".entry__card");
+      if (!card) return;
+      const entry = card.closest(".entry");
+      if (entry) openModal(entry);
+    });
+
+    timeline.addEventListener("keydown", (e) => {
+      if (document.documentElement.classList.contains("flying")) return;
+      if (e.key === "Enter" || e.key === " ") {
+        const card = e.target.closest(".entry__card");
+        if (card) {
+          e.preventDefault();
+          const entry = card.closest(".entry");
+          if (entry) openModal(entry);
+        }
+      }
+    });
+
+    if (closeBtn) closeBtn.addEventListener("click", closeModal);
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal.hidden) closeModal();
+    });
+  })();
 })();

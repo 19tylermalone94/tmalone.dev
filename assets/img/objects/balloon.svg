@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 175">
+  <!-- balloon envelope -->
+  <ellipse cx="55" cy="74" rx="47" ry="60" fill="#e9c987" opacity=".88"/>
+  <!-- panel seams -->
+  <path d="M55,14 Q80,44 80,74 Q80,104 55,134" fill="none" stroke="#0b0f20" stroke-width="2.2" opacity=".22"/>
+  <path d="M55,14 Q30,44 30,74 Q30,104 55,134" fill="none" stroke="#0b0f20" stroke-width="2.2" opacity=".22"/>
+  <line x1="55" y1="14" x2="55" y2="134" stroke="#0b0f20" stroke-width="2.2" opacity=".12"/>
+  <!-- ropes -->
+  <line x1="20" y1="126" x2="35" y2="152" stroke="#e9c987" stroke-width="1.5"/>
+  <line x1="90" y1="126" x2="75" y2="152" stroke="#e9c987" stroke-width="1.5"/>
+  <!-- basket -->
+  <rect x="30" y="150" width="50" height="22" rx="3" fill="#e9c987"/>
+</svg>

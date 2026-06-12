@@ -117,6 +117,20 @@
   </div>
 </div>
 
+<!-- ============ EXPERIENCE DETAIL MODAL ============ -->
+<div class="entry-modal" id="entryModal" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalOrg">
+  <div class="entry-modal__panel">
+    <button type="button" class="entry-modal__close" id="modalClose" aria-label="Close">✕</button>
+    <header class="entry-modal__header">
+      <span class="entry-modal__layer" id="modalLayer"></span>
+      <h2 class="entry-modal__org" id="modalOrg"></h2>
+      <p class="entry-modal__role" id="modalRole"></p>
+      <time class="entry-modal__date" id="modalDate"></time>
+    </header>
+    <div class="entry-modal__body" id="modalContent"></div>
+  </div>
+</div>
+
 <main>
 
 <!-- ============ HERO ============ -->
@@ -188,13 +202,25 @@
         <img src="assets/img/thermosphere.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
-      <div class="entry__meta">
-        <span class="entry__no">01</span>
-        <time class="entry__date">Jul 2025 – Jun 2026</time>
+      <div class="entry__scene">
+      <div class="entry__object" aria-hidden="true">
+        <img src="assets/img/objects/satellite.svg" alt="" />
       </div>
-      <div class="entry__main">
+      <button class="entry__card" aria-haspopup="dialog" aria-label="Open details for WarTable by Freestyle Consulting">
+        <div class="entry__card-top">
+          <span class="entry__layer-badge">Thermosphere · 80–700 km</span>
+          <span class="entry__no" aria-hidden="true">01</span>
+        </div>
         <h3 class="entry__org">WarTable by Freestyle Consulting</h3>
         <p class="entry__role">Software Engineer (Full-Stack &amp; DevOps) — Contract</p>
+        <p class="entry__summary">Took an AI agent platform from zero to production on GCP</p>
+        <div class="entry__card-foot">
+          <time class="entry__date">Jul 2025 – Jun 2026</time>
+          <span class="entry__open-hint" aria-hidden="true">Details ↗</span>
+        </div>
+      </button>
+      </div>
+      <div class="entry__detail" hidden>
         <div class="entry__text">
           <p>Took WarTable from nothing to a production application built around Athena, an AI agent users chat with on the web and on mobile. Athena can connect to roughly 3,000 apps through Pipedream Connect, and I built a filtering layer that lets users turn individual MCP server tools on or off, plus support for dynamic client MCP servers so users can plug in their own.</p>
           <p>I built the knowledge base system on ChromaDB: users connect and browse their Drive apps and sync files into knowledge bases, where document contents are extracted, chunked, and embedded (or summarized), and both Athena and the WBHI draw on those alongside the connected apps. Syncing is automatic — users can watch a folder, get a WarTable notification when new files land, and choose to sync all, some, or none, with an ignore feature for files they want skipped. Memory is handled with mem0, scoped at both the user and workspace level, and real-time notifications and AI response streaming run over WebSockets.</p>
@@ -212,13 +238,25 @@
         <img src="assets/img/mesosphere.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
-      <div class="entry__meta">
-        <span class="entry__no">02</span>
-        <time class="entry__date">Dec 2024 – Dec 2025</time>
+      <div class="entry__scene">
+      <div class="entry__object" aria-hidden="true">
+        <img src="assets/img/objects/balloon.svg" alt="" />
       </div>
-      <div class="entry__main">
+      <button class="entry__card" aria-haspopup="dialog" aria-label="Open details for HYVV">
+        <div class="entry__card-top">
+          <span class="entry__layer-badge">Mesosphere · 50–85 km</span>
+          <span class="entry__no" aria-hidden="true">02</span>
+        </div>
         <h3 class="entry__org">HYVV</h3>
         <p class="entry__role">Software Engineer (Full-Stack &amp; DevOps) — Contract</p>
+        <p class="entry__summary">Built early AI features and ran the entire dev pipeline solo</p>
+        <div class="entry__card-foot">
+          <time class="entry__date">Dec 2024 – Dec 2025</time>
+          <span class="entry__open-hint" aria-hidden="true">Details ↗</span>
+        </div>
+      </button>
+      </div>
+      <div class="entry__detail" hidden>
         <div class="entry__text">
           <p>Built early AI features for the platform on the OpenAI API. One was a conversational agent backed by a clipboard-style questionnaire and talking points that extracted context from users so the platform could plan and carry out tasks for their business. Another let users generate products and features — complete with images — from a single prompt. This was early 2025, when AI apps were still mostly structured output behind a button, before heavy tool use or MCP.</p>
           <p>After the other engineers separated from the company, I took responsibility for the entire development pipeline — running everything on GCP, handling CI/CD through GitHub Actions, and managing the database.</p>
@@ -234,13 +272,25 @@
         <img src="assets/img/stratosphere.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
-      <div class="entry__meta">
-        <span class="entry__no">03</span>
-        <time class="entry__date">Jan 2025 – Aug 2025</time>
+      <div class="entry__scene">
+      <div class="entry__object" aria-hidden="true">
+        <img src="assets/img/objects/sr71.svg" alt="" />
       </div>
-      <div class="entry__main">
+      <button class="entry__card" aria-haspopup="dialog" aria-label="Open details for Project Sustain, Colorado State University">
+        <div class="entry__card-top">
+          <span class="entry__layer-badge">Stratosphere · 12–50 km</span>
+          <span class="entry__no" aria-hidden="true">03</span>
+        </div>
         <h3 class="entry__org">Project Sustain, Colorado State University</h3>
         <p class="entry__role">Software Engineer &amp; Research Assistant</p>
+        <p class="entry__summary">Built academic tooling, an AI-powered citation checker, and contributed to drone-swarm research</p>
+        <div class="entry__card-foot">
+          <time class="entry__date">Jan 2025 – Aug 2025</time>
+          <span class="entry__open-hint" aria-hidden="true">Details ↗</span>
+        </div>
+      </button>
+      </div>
+      <div class="entry__detail" hidden>
         <div class="entry__text">
           <p>My first feature on RamDesk — the CSU computer-science department's platform — was a statistics suite: Python backend endpoints feeding frontend graphs and plots that surface student grades, submission counts, submission timing, and similar metrics.</p>
           <p>I then extended a tool built to detect AI-written student papers by adding a system that flags suspicious references in a paper's bibliography. It uses OpenAI structured output to extract citation details from any format (MLA and the rest), then cross-checks that metadata against the open web. The checker tries the cheapest signal first — a DOI if there is one, then a URL, and finally an author/title/year lookup that actually has to search — and runs across DuckDuckGo, Bing, and Google so a rate limit on one engine falls through to the others. It drives Selenium with Firefox inside a container; getting past bot detection is hard, so the system deliberately errs toward false negatives, only flagging a reference when nothing checks out.</p>
@@ -257,13 +307,25 @@
         <img src="assets/img/peak.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
-      <div class="entry__meta">
-        <span class="entry__no">04</span>
-        <time class="entry__date">Aug 2023 – Dec 2025</time>
+      <div class="entry__scene">
+      <div class="entry__object" aria-hidden="true">
+        <img src="assets/img/objects/airliner.svg" alt="" />
       </div>
-      <div class="entry__main">
+      <button class="entry__card" aria-haspopup="dialog" aria-label="Open details for Colorado State University Teaching Assistant">
+        <div class="entry__card-top">
+          <span class="entry__layer-badge">Cloud Line · 5,000 m</span>
+          <span class="entry__no" aria-hidden="true">04</span>
+        </div>
         <h3 class="entry__org">Colorado State University</h3>
         <p class="entry__role">Undergraduate Teaching Assistant</p>
+        <p class="entry__summary">Mentored 200+ students per semester in Python, Java, and software development</p>
+        <div class="entry__card-foot">
+          <time class="entry__date">Aug 2023 – Dec 2025</time>
+          <span class="entry__open-hint" aria-hidden="true">Details ↗</span>
+        </div>
+      </button>
+      </div>
+      <div class="entry__detail" hidden>
         <div class="entry__text">
           <p>I taught Python (Fall 2023), Java (Spring 2024), and Software Development (Fall 2024 onward). I mentored more than 200 students each semester in coding, debugging, and software best practices, and I developed labs and course materials.</p>
         </div>
@@ -278,13 +340,25 @@
         <img src="assets/img/mountains.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
-      <div class="entry__meta">
-        <span class="entry__no">05</span>
-        <time class="entry__date">Jan 2024 – Dec 2025</time>
+      <div class="entry__scene">
+      <div class="entry__object" aria-hidden="true">
+        <img src="assets/img/objects/eagle.svg" alt="" />
       </div>
-      <div class="entry__main">
+      <button class="entry__card" aria-haspopup="dialog" aria-label="Open details for CSU Robotics Lab">
+        <div class="entry__card-top">
+          <span class="entry__layer-badge">Alpine · 4,000 m</span>
+          <span class="entry__no" aria-hidden="true">05</span>
+        </div>
         <h3 class="entry__org">CSU Robotics Lab</h3>
         <p class="entry__role">Robotics Research Volunteer</p>
+        <p class="entry__summary">Mapped a building with LIDAR and built an autonomous Halloween candy-delivery demo on real hardware</p>
+        <div class="entry__card-foot">
+          <time class="entry__date">Jan 2024 – Dec 2025</time>
+          <span class="entry__open-hint" aria-hidden="true">Details ↗</span>
+        </div>
+      </button>
+      </div>
+      <div class="entry__detail" hidden>
         <div class="entry__text">
           <p>A year of unpaid, volunteer robotics research at CSU — I took it for the chance to work with expensive hardware. A friend from the video game dev club I'd done game jams with got me into the lab before he transferred schools. The lab had an old ROS-based Fetch robot and a newer ROS2 robot I worked with virtually. My first task was to master the Fetch in simulation: I spent about a month buried in the ROS and Fetch docs, running the demos, and learning the fiddly details — placing AR tags in Gazebo, catching when configs are in meters versus millimeters, lighting, and driving and monitoring the robot through RViz.</p>
           <p>Next I checked whether the physical robot still worked, now that the student who had been running it was gone, so I spent several nights verifying that everything I'd done in simulation held up on real hardware, writing scripts to reset the robot to known positions while testing routines and keeping it well clear of obstacles. Late one night, with the building empty, I mapped the lobby of the CS building using ROS's Fetch navigation and mapping nodes, building an occupancy map from the LIDAR and laser scans and marking out no-go zones.</p>
@@ -301,13 +375,25 @@
         <img src="assets/img/canyon.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
-      <div class="entry__meta">
-        <span class="entry__no">06</span>
-        <time class="entry__date">Oct 2018 – Oct 2022</time>
+      <div class="entry__scene">
+      <div class="entry__object" aria-hidden="true">
+        <img src="assets/img/objects/helicopter.svg" alt="" />
       </div>
-      <div class="entry__main">
+      <button class="entry__card" aria-haspopup="dialog" aria-label="Open details for US Marine Corps">
+        <div class="entry__card-top">
+          <span class="entry__layer-badge">High Desert · 1,500 m</span>
+          <span class="entry__no" aria-hidden="true">06</span>
+        </div>
         <h3 class="entry__org">US Marine Corps</h3>
         <p class="entry__role">Refrigeration Technician · Utilities Operations SNCO · Utilities Quality Control SNCO</p>
+        <p class="entry__summary">Ran power operations at the Corps' largest field exercise and managed a 50+ generator fleet</p>
+        <div class="entry__card-foot">
+          <time class="entry__date">Oct 2018 – Oct 2022</time>
+          <span class="entry__open-hint" aria-hidden="true">Details ↗</span>
+        </div>
+      </button>
+      </div>
+      <div class="entry__detail" hidden>
         <div class="entry__text">
           <p>I served as a Meritorious Corporal in the 4th Marines, 3rd Marine Division. I started as a refrigeration technician — air conditioning and HVAC/R — reading schematics, troubleshooting from technical manuals, and repairing equipment, and my scope quickly grew beyond AC to electrical systems, diesel-engine generators, and water purification systems, along with the inventory and maintenance they required.</p>
           <p>I moved up to Quality Control NCO and effectively became the operator-maintenance manager for the section. Most equipment had tasks the operator was responsible for and others handled at a different echelon — scheduled or corrective — and the program was a mess when I arrived. I brought our entire generator fleet under control: more than fifty AMMPS sets ranging from 1.5kW to 30kW, powered by Cummins, Kubota, and Yanmar engines. I owned the scheduled maintenance while a counterpart handled corrective, tracking technician sheets, scheduling services, moving equipment, and ordering parts through a clunky maintenance system where every level of the chain of command had its own rules for how fields should be filled in and categorized. You would think it could scan a technical manual, match a manufacturer ID, and load the checklists and intervals automatically — it could not. Once it was sorted, it ran smoothly. I was trusted enough with the maintenance-management process that I was also put in charge of the company's combat engineer equipment — heavy demolition and construction gear — even though we had no combat engineers.</p>
