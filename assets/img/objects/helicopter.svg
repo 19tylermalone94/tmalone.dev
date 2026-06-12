@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 118">
+  <!-- main rotor blades -->
+  <rect x="18" y="16" width="194" height="5" rx="2.5" fill="#e9c987"/>
+  <!-- rotor hub -->
+  <circle cx="118" cy="18" r="7" fill="#e9c987"/>
+  <!-- fuselage body -->
+  <path d="M 52,52 C 46,36 56,22 74,20 L 164,20 C 180,20 190,32 190,48 L 190,84 C 190,96 180,100 164,100 L 74,100 C 56,100 46,90 50,74 Z" fill="#e9c987"/>
+  <!-- tail boom -->
+  <path d="M 190,60 L 254,50 L 258,54 L 258,66 L 254,70 L 190,80 Z" fill="#e9c987" opacity=".84"/>
+  <!-- tail rotor disc -->
+  <ellipse cx="257" cy="50" rx="3" ry="15" fill="#e9c987" opacity=".9"/>
+  <!-- landing skids -->
+  <line x1="72" y1="100" x2="72" y2="112" stroke="#e9c987" stroke-width="2.5"/>
+  <line x1="158" y1="100" x2="158" y2="112" stroke="#e9c987" stroke-width="2.5"/>
+  <line x1="50" y1="112" x2="102" y2="112" stroke="#e9c987" stroke-width="2.5"/>
+  <line x1="132" y1="112" x2="184" y2="112" stroke="#e9c987" stroke-width="2.5"/>
+  <!-- cockpit window -->
+  <path d="M 58,52 C 56,40 63,30 76,28 L 128,28 C 140,28 148,36 148,48 L 148,60 C 140,64 64,64 60,60 Z" fill="#0b0f20" opacity=".42"/>
+</svg>

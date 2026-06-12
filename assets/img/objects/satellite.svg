@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 90">
+  <!-- main body -->
+  <rect x="78" y="32" width="44" height="26" rx="3" fill="#e9c987"/>
+  <!-- left solar panel -->
+  <rect x="6" y="38" width="64" height="14" rx="2" fill="#e9c987" opacity=".72"/>
+  <!-- right solar panel -->
+  <rect x="130" y="38" width="64" height="14" rx="2" fill="#e9c987" opacity=".72"/>
+  <!-- panel cell dividers left -->
+  <line x1="26" y1="38" x2="26" y2="52" stroke="#0b0f20" stroke-width="1.2"/>
+  <line x1="46" y1="38" x2="46" y2="52" stroke="#0b0f20" stroke-width="1.2"/>
+  <!-- panel cell dividers right -->
+  <line x1="150" y1="38" x2="150" y2="52" stroke="#0b0f20" stroke-width="1.2"/>
+  <line x1="170" y1="38" x2="170" y2="52" stroke="#0b0f20" stroke-width="1.2"/>
+  <!-- antenna mast -->
+  <line x1="100" y1="32" x2="100" y2="16" stroke="#e9c987" stroke-width="1.5"/>
+  <!-- antenna dish -->
+  <circle cx="100" cy="11" r="6" fill="#e9c987"/>
+  <!-- connection struts -->
+  <rect x="70" y="42" width="8" height="4" rx="1" fill="#e9c987"/>
+  <rect x="122" y="42" width="8" height="4" rx="1" fill="#e9c987"/>
+</svg>

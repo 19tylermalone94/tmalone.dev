@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 120">
+  <!-- left wing (curves up from body, feathered wingtip) -->
+  <path d="M 106,62 C 84,54 52,42 22,24 C 14,20 6,24 9,30 L 30,52 C 52,64 78,68 102,72 Z" fill="#e9c987"/>
+  <!-- right wing (mirror) -->
+  <path d="M 134,62 C 156,54 188,42 218,24 C 226,20 234,24 231,30 L 210,52 C 188,64 162,68 138,72 Z" fill="#e9c987"/>
+  <!-- body -->
+  <ellipse cx="120" cy="70" rx="20" ry="25" fill="#e9c987"/>
+  <!-- head -->
+  <circle cx="120" cy="44" r="14" fill="#e9c987"/>
+  <!-- beak (hooked) -->
+  <path d="M 120,52 L 132,58 L 120,64 Z" fill="#0b0f20" opacity=".5"/>
+  <!-- tail feathers -->
+  <path d="M 106,93 C 111,101 116,108 120,110 C 124,108 129,101 134,93 L 128,96 L 120,100 L 112,96 Z" fill="#e9c987" opacity=".85"/>
+  <!-- wing feather detail lines -->
+  <line x1="50" y1="48" x2="70" y2="62" stroke="#0b0f20" stroke-width="1" opacity=".18"/>
+  <line x1="80" y1="42" x2="96" y2="60" stroke="#0b0f20" stroke-width="1" opacity=".18"/>
+  <line x1="160" y1="42" x2="144" y2="60" stroke="#0b0f20" stroke-width="1" opacity=".18"/>
+  <line x1="190" y1="48" x2="170" y2="62" stroke="#0b0f20" stroke-width="1" opacity=".18"/>
+</svg>

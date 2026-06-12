@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 90">
+  <!-- fuselage / chined body — very long needle nose -->
+  <path d="M 4,45 C 42,32 78,26 114,24 L 258,24 C 272,24 284,32 290,45 C 284,58 272,66 258,66 L 114,66 C 78,64 42,58 4,45 Z" fill="#e9c987"/>
+  <!-- delta wing (swept-back, seen from side as rear lower area) -->
+  <path d="M 86,58 L 264,64 L 276,82 L 70,72 Z" fill="#e9c987" opacity=".78"/>
+  <!-- vertical stabilizer -->
+  <path d="M 258,24 L 275,5 L 284,26 Z" fill="#e9c987"/>
+  <!-- engine nacelle -->
+  <path d="M 114,64 L 200,68 C 210,68 216,71 216,75 C 216,79 210,81 200,81 L 114,77 C 104,77 98,74 98,70 C 98,66 104,64 114,64 Z" fill="#e9c987" opacity=".82"/>
+</svg>
