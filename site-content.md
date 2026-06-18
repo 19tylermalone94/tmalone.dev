@@ -20,6 +20,11 @@ I served four years in the US Marine Corps as a refrigeration technician and lat
 Software Engineer (Full-Stack & DevOps) — Contract
 Jul 2025 – Jun 2026
 
+- Built Athena AI agent (web + mobile) with 3,000+ app integrations via Pipedream; custom MCP tool filtering and dynamic client MCP server support
+- ChromaDB knowledge base with Drive sync, folder watching, per-file ignore controls, mem0 memory at user + workspace scope, WebSocket streaming
+- Multi-agent WBHI scores business health; feedback loop generates tasks with predicted score increases and agentic verification
+- Routines scheduler, billing/credits/quotas; isolated admin app with direct DB access; GCP Cloud Run via GitHub Actions + Docker
+
 Took WarTable from nothing to a production application built around Athena, an AI agent users chat with on the web and on mobile. Athena can connect to roughly 3,000 apps through Pipedream Connect, and I built a filtering layer that lets users turn individual MCP server tools on or off, plus support for dynamic client MCP servers so users can plug in their own.
 
 I built the knowledge base system on ChromaDB: users connect and browse their Drive apps and sync files into knowledge bases, where document contents are extracted, chunked, and embedded (or summarized), and both Athena and the WBHI draw on those alongside the connected apps. Syncing is automatic — users can watch a folder, get a WarTable notification when new files land, and choose to sync all, some, or none, with an ignore feature for files they want skipped. Memory is handled with mem0, scoped at both the user and workspace level, and real-time notifications and AI response streaming run over WebSockets.
@@ -34,6 +39,9 @@ Technologies: Next.js · Nest.js · Prisma + PostgreSQL · GCP · Firebase · Op
 Software Engineer (Full-Stack & DevOps) — Contract
 Dec 2024 – Dec 2025
 
+- Conversational agent + product/feature generator on OpenAI API — before MCP and heavy tool use became standard
+- Became sole engineer after team departure; owned full GCP infrastructure, CI/CD via GitHub Actions, and database
+
 Built early AI features for the platform on the OpenAI API. One was a conversational agent backed by a clipboard-style questionnaire and talking points that extracted context from users so the platform could plan and carry out tasks for their business. Another let users generate products and features — complete with images — from a single prompt. This was early 2025, when AI apps were still mostly structured output behind a button, before heavy tool use or MCP.
 
 After the other engineers separated from the company, I took responsibility for the entire development pipeline — running everything on GCP, handling CI/CD through GitHub Actions, and managing the database.
@@ -43,6 +51,10 @@ Technologies: OpenAI API · Structured Output · Next.js · Node.js · Express �
 ### Project Sustain, Colorado State University
 Software Engineer & Research Assistant
 Jan 2025 – Aug 2025
+
+- Statistics suite for RamDesk: Python endpoints feeding frontend graphs of student grades, submission counts, and timing
+- Bibliography verification system using OpenAI structured output + multi-engine web scraping (DDG, Bing, Google) via Selenium in Docker
+- Docker worker pipeline, admin session views, Canvas API integrations, HoneyComb UAV contribution; REI Undergraduate Research Stipend
 
 My first feature on RamDesk — the CSU computer-science department's platform — was a statistics suite: Python backend endpoints feeding frontend graphs and plots that surface student grades, submission counts, submission timing, and similar metrics.
 
@@ -56,6 +68,8 @@ Technologies: Python · Flask · React · MongoDB · OpenAI API · Structured Ou
 Undergraduate Teaching Assistant
 Aug 2023 – Dec 2025
 
+- Taught Python, Java, and Software Development to 200+ students per semester; built labs and course materials
+
 I taught Python (Fall 2023), Java (Spring 2024), and Software Development (Fall 2024 onward). I mentored more than 200 students each semester in coding, debugging, and software best practices, and I developed labs and course materials.
 
 Technologies: Teaching · Public Speaking · Mentorship · Python · Java · Software Development
@@ -63,6 +77,10 @@ Technologies: Teaching · Public Speaking · Mentorship · Python · Java · Sof
 ### CSU Robotics Lab
 Robotics Research Volunteer
 Jan 2024 – Dec 2025
+
+- Mastered Fetch robot in ROS/Gazebo simulation — AR tags, RViz monitoring, millimeter-vs-meter config quirks
+- Validated simulation on real hardware; scripted safety resets; SLAM-mapped the CS building lobby at night
+- Halloween demo: YOLO person detection → ROS navigation → Ghostbusters TTS + candy handoff from robot arm; Unity–ROS2 bridge for TurtleBot
 
 A year of unpaid, volunteer robotics research at CSU — I took it for the chance to work with expensive hardware. A friend from the video game dev club I'd done game jams with got me into the lab before he transferred schools. The lab had an old ROS-based Fetch robot and a newer ROS2 robot I worked with virtually. My first task was to master the Fetch in simulation: I spent about a month buried in the ROS and Fetch docs, running the demos, and learning the fiddly details — placing AR tags in Gazebo, catching when configs are in meters versus millimeters, lighting, and driving and monitoring the robot through RViz.
 
@@ -75,6 +93,11 @@ Technologies: ROS · ROS2 · Gazebo · RViz · Python 2/3 · YOLO · Unity · XR
 ### US Marine Corps
 Refrigeration Technician · Utilities Operations SNCO · Utilities Quality Control SNCO
 Oct 2018 – Oct 2022
+
+- Refrigeration tech in 4th Marines, 3rd Division; scope grew from HVAC/R to electrical systems, diesel generators, and water purification
+- QC NCO managing 50+ AMMPS generator fleet (1.5–30kW, Cummins/Kubota/Yanmar); extended responsibility to combat engineer equipment
+- Designed MWX power plans; JLTV tactical driving instructor; kept a failing 5kW generator running by hand for 3 days to support comms and fire support
+- Soochow Creek Medal and Meritorious Mast; color guard, 292/300 PFT, meritorious promotions; started coding in 2021 on freeCodeCamp
 
 I served as a Meritorious Corporal in the 4th Marines, 3rd Marine Division. I started as a refrigeration technician — air conditioning and HVAC/R — reading schematics, troubleshooting from technical manuals, and repairing equipment, and my scope quickly grew beyond AC to electrical systems, diesel-engine generators, and water purification systems, along with the inventory and maintenance they required.
 
