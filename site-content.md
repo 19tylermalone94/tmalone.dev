@@ -4,10 +4,6 @@ Software Engineer specializing in full-stack development, DevOps, distributed sy
 
 Role: Software Engineer · Full-Stack · DevOps · AI / Agent Systems
 
-Experience: 3+ years — full-stack · DevOps · AI
-
-Availability: Open to contract work. Open to roles in the United States or Japan.
-
 ## About
 
 I am a software engineer specializing in agentic AI systems — agent memory, retrieval, and tool use — and the full-stack and DevOps work required to deploy them. Most recently I built WarTable: an AI agent that operates over a user's connected apps and knowledge bases, a multi-agent system that scores business health, and the supporting infrastructure on GCP. I primarily work with Next.js, Nest.js, Prisma, PostgreSQL, and ChromaDB, and I handle projects from development through deployment.
@@ -95,24 +91,6 @@ GPA 3.96 / 4.0
 
 Graduated December 2025. Relevant coursework: Machine Learning · Reinforcement Learning · Distributed Systems (P2P and Cluster Computing) · AI Agents · Software Engineering · System Security · Game Design.
 
-## Projects
-
-### Meal Plan Generator AI
-Aug 2025 – Present
-mealplangenerator.ai — https://www.mealplangenerator.ai
-
-AI-powered meal planning platform that generates personalized weekly meal plans with recipes, nutrition information, and shopping lists. Uses reinforcement learning for preference adaptation with human-in-the-loop verification and dynamic recipe ranking.
-
-Technologies: Python · Reinforcement Learning · AI · Nutrition Tracking
-
-### WarTable™
-Jul 2025 – Jun 2026
-wartable.ai — https://wartable.ai
-
-A B2B SaaS platform built under Freestyle Consulting, centered on Athena — an AI agent that connects ~3,000 apps through Pipedream and reasons over users' tools and synced knowledge bases — and the WarTable Business Health Index, a multi-agent system that scores how a business is doing and generates verified, accountable improvement tasks.
-
-Technologies: Next.js · Nest.js · Prisma + PostgreSQL · GCP · OpenRouter · Pipedream · ChromaDB · mem0 · Stripe
-
 ## Skills
 
 - Languages: Python, TypeScript, JavaScript, Java
@@ -150,4 +128,4 @@ Technologies: Next.js · Nest.js · Prisma + PostgreSQL · GCP · OpenRouter · 
 - LinkedIn: https://linkedin.com/in/tylermmalone
 - GitHub: https://github.com/19tylermalone94
 
-I'm available for contract work and consulting opportunities — full-stack development, agentic AI, or DevOps. Always open to discussing new projects, interesting challenges, or permanent roles.
+Always open to discussing new projects and interesting challenges.
