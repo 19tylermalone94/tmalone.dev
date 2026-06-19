@@ -4,8 +4,6 @@ Software Engineer specializing in full-stack development, DevOps, distributed sy
 
 Role: Software Engineer · Full-Stack · DevOps · AI / Agent Systems
 
-Availability: Open to contract work. Open to roles in the United States or Japan.
-
 ## About
 
 I am a software engineer specializing in agentic AI systems — agent memory, retrieval, and tool use — and the full-stack and DevOps work required to deploy them. Most recently I built WarTable: an AI agent that operates over a user's connected apps and knowledge bases, a multi-agent system that scores business health, and the supporting infrastructure on GCP. I primarily work with Next.js, Nest.js, Prisma, PostgreSQL, and ChromaDB, and I handle projects from development through deployment.
@@ -130,4 +128,4 @@ Graduated December 2025. Relevant coursework: Machine Learning · Reinforcement 
 - LinkedIn: https://linkedin.com/in/tylermmalone
 - GitHub: https://github.com/19tylermalone94
 
-I'm available for contract work and consulting opportunities — full-stack development, agentic AI, or DevOps. Always open to discussing new projects, interesting challenges, or permanent roles.
+Always open to discussing new projects and interesting challenges.
