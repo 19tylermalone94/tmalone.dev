@@ -307,12 +307,13 @@
 
     /* ---- spawning & firing ---- */
     function spawnFoe() {
-      const m = 60, edge = Math.floor(Math.random() * 4);
+      const m = 60, edge = Math.floor(Math.random() * 4), sc = window.scrollY;
       let x, y;
-      if (edge === 0) { x = Math.random() * gw; y = -m; }
-      else if (edge === 1) { x = gw + m; y = Math.random() * gh; }
-      else if (edge === 2) { x = Math.random() * gw; y = gh + m; }
-      else { x = -m; y = Math.random() * gh; }
+      // y is stored in world (page) space, so spawn around the current view
+      if (edge === 0) { x = Math.random() * gw; y = sc - m; }
+      else if (edge === 1) { x = gw + m; y = sc + Math.random() * gh; }
+      else if (edge === 2) { x = Math.random() * gw; y = sc + gh + m; }
+      else { x = -m; y = sc + Math.random() * gh; }
       const tough = Math.random() < Math.min(0.4, gTime * 0.006);
       foes.push({ x, y, vx: 0, vy: 0, r: tough ? 21 : 15, hp: tough ? 3 : 1, hue: tough ? "gold" : "rose", shoot: 0.8 + Math.random() * 1.4, wob: Math.random() * 6.2832 });
     }
@@ -323,7 +324,7 @@
       shots++;
       const rad = rot * Math.PI / 180;
       const dx = Math.sin(rad), dy = -Math.cos(rad);
-      pBullets.push({ x: px + dx * 28, y: py + dy * 28, vx: dx * BULLET_V + vx * 0.3, vy: dy * BULLET_V + vy * 0.3, life: 1.1 });
+      pBullets.push({ x: px + dx * 28, y: (py + window.scrollY) + dy * 28, vx: dx * BULLET_V + vx * 0.3, vy: dy * BULLET_V + vy * 0.3, life: 1.1 });
       vx -= dx * 26; vy -= dy * 26;            // gentle recoil
       beep(660, 0.07, "square", 0.025, 240);
     }
@@ -342,7 +343,8 @@
     function die() {
       if (dead) return;
       dead = true; alive = false;
-      explode(px, py, "gold", 40); explode(px, py, "rose", 26); explode(px, py, "white", 16);
+      const wy = py + window.scrollY;
+      explode(px, wy, "gold", 40); explode(px, wy, "rose", 26); explode(px, wy, "white", 16);
       shake = 18;
       rocket.hidden = true;
       keys.up = keys.down = keys.left = keys.right = keys.boost = keys.fire = false;
@@ -451,11 +453,15 @@
       }
       fireT -= dt;
 
+      // player position in world (page) space — foes/bullets live in world space
+      const sc = window.scrollY;
+      const pwx = px, pwy = py + sc;
+
       const foeSpeed = Math.min(330, 150 + gTime * 2.4);
       for (let i = foes.length - 1; i >= 0; i--) {
         const f = foes[i];
         f.wob += dt * 2.2;
-        const dx = px - f.x, dy = py - f.y, d = Math.hypot(dx, dy) || 1;
+        const dx = pwx - f.x, dy = pwy - f.y, d = Math.hypot(dx, dy) || 1;
         f.vx += (dx / d) * 620 * dt + Math.cos(f.wob) * 40 * dt;
         f.vy += (dy / d) * 620 * dt + Math.sin(f.wob) * 40 * dt;
         const fs = Math.hypot(f.vx, f.vy);
@@ -482,7 +488,8 @@
       for (let i = pBullets.length - 1; i >= 0; i--) {
         const b = pBullets[i];
         b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
-        let gone = b.life <= 0 || b.x < -30 || b.x > gw + 30 || b.y < -30 || b.y > gh + 30;
+        const by = b.y - sc;
+        let gone = b.life <= 0 || b.x < -30 || b.x > gw + 30 || by < -30 || by > gh + 30;
         for (let j = foes.length - 1; j >= 0 && !gone; j--) {
           const f = foes[j];
           if (Math.hypot(b.x - f.x, b.y - f.y) < f.r + 5) {
@@ -504,10 +511,11 @@
       for (let i = fBullets.length - 1; i >= 0; i--) {
         const b = fBullets[i];
         b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
-        const d = Math.hypot(b.x - px, b.y - py);
+        const d = Math.hypot(b.x - pwx, b.y - pwy);
         if (alive && d < 14) { fBullets.splice(i, 1); hitPlayer(10); continue; }
         if (alive && !b.grazed && d < 34) { b.grazed = true; grazes++; }
-        if (b.life <= 0 || b.x < -40 || b.x > gw + 40 || b.y < -40 || b.y > gh + 40) fBullets.splice(i, 1);
+        const by2 = b.y - sc;
+        if (b.life <= 0 || b.x < -40 || b.x > gw + 40 || by2 < -40 || by2 > gh + 40) fBullets.splice(i, 1);
       }
 
       // particles
@@ -563,7 +571,9 @@
       gctx.setTransform(gdpr, 0, 0, gdpr, 0, 0);
       gctx.clearRect(0, 0, gw, gh);
       gctx.save();
-      gctx.translate(shakeX, shakeY);
+      // entities are stored in world (page) space; shift up by the scroll so
+      // they stay pinned to the background and can scroll out of view
+      gctx.translate(shakeX, shakeY - window.scrollY);
 
       for (const b of fBullets) {
         const g = gctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, 9);
@@ -826,12 +836,12 @@
       [0.40, [18, 33, 78]],
       [0.50, [33, 64, 126]],  // upper atmosphere
       [0.58, [60, 112, 178]],
-      [0.65, [120, 178, 220]],// bright day sky
-      [0.71, [158, 202, 228]],// haze near horizon
-      [0.76, [96, 168, 190]],
-      [0.80, [40, 126, 146]], // sea surface
-      [0.86, [16, 88, 108]],
-      [0.93, [8, 52, 70]],
+      [0.66, [120, 178, 220]],// bright day sky
+      [0.78, [158, 202, 228]],// haze held through the mountain band
+      [0.84, [120, 176, 196]],// hazy horizon just above the water
+      [0.88, [40, 126, 146]], // sea surface
+      [0.92, [16, 88, 108]],
+      [0.96, [8, 52, 70]],
       [1.00, [3, 18, 27]],    // the deep
     ];
     function skyColor(f) {
@@ -860,6 +870,9 @@
     const planetImg = load("assets/img/planet.png");
     const moonImg = load("assets/img/moon.png");
     const cloudImgs = [1, 2, 3, 4, 5, 6, 7].map((n) => load("assets/img/cloud" + n + ".png"));
+    const fishImgs = [1, 2].map((n) => load("assets/img/fish" + n + ".png")); // sprites face right
+    const sharkImg = load("assets/img/shark.png"); // faces right
+    const planeImg = load("assets/img/plane.png"); // faces right
 
     // parallax mountain ridges (far → near). Pointy peaks built from
     // irregular peak/valley nodes; far ridges get snow, near ridge is forested.
@@ -898,10 +911,11 @@
     const SCALE = (() => Math.max(3, Math.round(innerWidth / 520)))();
     let scale = SCALE;
     let W, H, BW, BH;
-    let stars = [], nebulae = [], clouds = [], fish = [], bubbles = [], birds = [];
+    let stars = [], nebulae = [], clouds = [], fish = [], bubbles = [], birds = [], sharks = [], gore = [], planes = [], flora = [];
     let p = 0;                 // eased scroll fraction
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
     let t0 = performance.now();
+    let lastMs = t0;
 
     function seed() {
       // stars (buffer space, wrap-scrolled in the space band)
@@ -927,10 +941,12 @@
       }
       // fish (underwater)
       fish = [];
-      const FC = [[230, 180, 90], [220, 120, 110], [120, 200, 210], [180, 210, 140], [200, 160, 220]];
-      for (let i = 0; i < 14; i++) {
-        fish.push({ frac: rand(0.84, 0.99), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.02, 0.06), s: rand(0.6, 1.6), c: FC[i % FC.length], wob: rand(0, 6.28) });
+      for (let i = 0; i < 28; i++) {
+        fish.push({ frac: rand(0.88, 0.99), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.02, 0.06), s: rand(0.7, 1.5), img: (Math.random() * fishImgs.length) | 0, wob: rand(0, 6.28) });
       }
+      // shark — a single roaming predator
+      sharks = [{ frac: rand(0.89, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.05, 0.08), s: rand(1.0, 1.25), wob: rand(0, 6.28) }];
+      gore = [];
       // bubbles
       bubbles = [];
       for (let i = 0; i < 40; i++) {
@@ -940,6 +956,22 @@
       birds = [];
       for (let i = 0; i < 6; i++) {
         birds.push({ frac: rand(0.6, 0.76), x: rand(0, 1), spd: rand(0.01, 0.03), s: rand(0.8, 1.6), ph: rand(0, 6.28) });
+      }
+      // airplanes — high altitude, between space and the clouds
+      planes = [];
+      for (let i = 0; i < 3; i++) {
+        planes.push({ frac: rand(0.36, 0.52), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.02, 0.045), s: rand(0.7, 1.1), wob: rand(0, 6.28) });
+      }
+      // sea-floor flora — kelp + coral on the ocean bed
+      flora = [];
+      const KELP = [[28, 92, 62], [38, 112, 74], [22, 78, 56]];
+      const CORAL = [[224, 108, 120], [232, 142, 84], [156, 100, 188], [212, 96, 152], [110, 176, 184]];
+      for (let i = 0; i < 6; i++) {
+        flora.push({ kind: "kelp", x: rand(0.04, 0.96), h: rand(0.20, 0.34), col: KELP[(Math.random() * KELP.length) | 0], ph: rand(0, 6.28) });
+      }
+      const kinds = ["branch", "fan", "blob"];
+      for (let i = 0; i < 7; i++) {
+        flora.push({ kind: kinds[(Math.random() * kinds.length) | 0], x: rand(0.03, 0.97), h: rand(0.07, 0.15), col: CORAL[(Math.random() * CORAL.length) | 0], ph: rand(0, 6.28) });
       }
     }
 
@@ -970,6 +1002,92 @@
       bx.beginPath(); bx.ellipse(cx, cy, Math.max(0.5, rx), Math.max(0.5, ry), 0, 0, 6.2832); bx.fill();
     }
 
+    const shade = (c, d) => [Math.max(0, Math.min(255, c[0] + d)), Math.max(0, Math.min(255, c[1] + d)), Math.max(0, Math.min(255, c[2] + d))];
+
+    // a swaying kelp plant: a few tapered, leafy fronds rooted at (x, baseY)
+    function drawKelp(x, baseY, h, col, ph, a, t) {
+      for (let st = 0; st < 3; st++) {
+        const sx = x + (st - 1) * h * 0.12;
+        const fh = h * (1 - Math.abs(st - 1) * 0.2);
+        const seg = 8, amp = fh * 0.26;
+        const px = [], py = [];
+        for (let i = 0; i <= seg; i++) {
+          const tt2 = i / seg;
+          px.push(sx + Math.sin(t * 1.1 + ph + st + tt2 * 2.6) * amp * tt2);
+          py.push(baseY - tt2 * fh);
+        }
+        const wB = Math.max(1.2, fh * 0.06);
+        bx.fillStyle = rgb(col, a);
+        bx.beginPath();
+        for (let i = 0; i <= seg; i++) bx.lineTo(px[i] - wB * (1 - i / seg * 0.75), py[i]);
+        for (let i = seg; i >= 0; i--) bx.lineTo(px[i] + wB * (1 - i / seg * 0.75), py[i]);
+        bx.closePath(); bx.fill();
+        bx.fillStyle = rgb(shade(col, 24), a);     // leaf blades
+        for (let i = 1; i < seg; i++) {
+          const side = i % 2 ? 1 : -1;
+          ellipse(px[i] + side * fh * 0.07, py[i], fh * 0.08, fh * 0.035);
+        }
+      }
+    }
+
+    // one coral: branching, fan, or rounded "brain" blob, rooted at (x, baseY)
+    function coralBranch(x, y, ang, len, thick, depth) {
+      const ex = x + Math.cos(ang) * len, ey = y + Math.sin(ang) * len;
+      const steps = Math.max(2, Math.ceil(len));
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        bx.beginPath(); bx.arc(x + (ex - x) * t, y + (ey - y) * t, Math.max(0.8, thick * (1 - t * 0.35)), 0, 6.2832); bx.fill();
+      }
+      if (depth < 2) {
+        coralBranch(ex, ey, ang - 0.5 - depth * 0.1, len * 0.72, thick * 0.72, depth + 1);
+        coralBranch(ex, ey, ang + 0.5 + depth * 0.1, len * 0.72, thick * 0.72, depth + 1);
+        if (depth === 0) coralBranch(ex, ey, ang + 0.06, len * 0.74, thick * 0.72, 1);
+      }
+    }
+    function drawCoral(x, baseY, h, col, a, kind) {
+      if (kind === "branch") {
+        bx.fillStyle = rgb(col, a);
+        coralBranch(x, baseY, -Math.PI / 2, h * 0.5, h * 0.16, 0);
+        bx.fillStyle = rgb(shade(col, 30), a);
+        coralBranch(x, baseY - h * 0.05, -Math.PI / 2 - 0.15, h * 0.34, h * 0.1, 1);
+      } else if (kind === "fan") {
+        const top = baseY - h;
+        bx.fillStyle = rgb(shade(col, -30), a);      // stem
+        bx.fillRect(x - Math.max(1, h * 0.04), baseY - h * 0.35, Math.max(1, h * 0.08), h * 0.35);
+        bx.fillStyle = rgb(col, a);
+        bx.beginPath();
+        bx.moveTo(x, baseY - h * 0.2);
+        bx.quadraticCurveTo(x - h * 0.7, top + h * 0.1, x - h * 0.45, top);
+        bx.quadraticCurveTo(x, top - h * 0.18, x + h * 0.45, top);
+        bx.quadraticCurveTo(x + h * 0.7, top + h * 0.1, x, baseY - h * 0.2);
+        bx.closePath(); bx.fill();
+        bx.strokeStyle = rgb(shade(col, -34), a * 0.8); bx.lineWidth = 1;
+        for (let k = -2; k <= 2; k++) { bx.beginPath(); bx.moveTo(x, baseY - h * 0.2); bx.lineTo(x + k * h * 0.2, top + h * 0.05); bx.stroke(); }
+      } else { // blob (brain coral)
+        bx.fillStyle = rgb(col, a);
+        ellipse(x, baseY - h * 0.32, h * 0.52, h * 0.4);
+        ellipse(x - h * 0.34, baseY - h * 0.14, h * 0.3, h * 0.24);
+        ellipse(x + h * 0.36, baseY - h * 0.15, h * 0.28, h * 0.22);
+        bx.fillStyle = rgb(shade(col, 34), a * 0.9);
+        ellipse(x - h * 0.1, baseY - h * 0.42, h * 0.2, h * 0.13);
+      }
+    }
+
+    // burst of blood-mist particles where a fish was eaten
+    const GORE_COLS = [[150, 18, 18], [120, 10, 10], [184, 38, 38], [92, 6, 6]];
+    function spawnGore(x, y, sz) {
+      const n = 12 + (Math.random() * 8 | 0);
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * 6.2832, sp = rand(0.3, 1) * sz * 1.4;
+        gore.push({
+          x: x, y: y,
+          vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - sz * 0.2,
+          r: rand(0.15, 0.4) * sz, grow: rand(0.4, 1) * sz,
+          life: rand(0.7, 1), c: GORE_COLS[(Math.random() * GORE_COLS.length) | 0],
+        });
+      }
+    }
+
     // little evergreen (stacked triangles + trunk) sitting on (x, baseY)
     function tree(x, baseY, h) {
       const tw = Math.max(1, h * 0.14);
@@ -989,6 +1107,7 @@
 
     function draw(now) {
       const ts = (now - t0) / 1000;
+      const dt = Math.min(0.05, (now - lastMs) / 1000); lastMs = now;
       const m = metrics();
       const fTop = m.sy / m.sh;                 // true world fraction (top of viewport)
       const target = m.sy / m.docH;
@@ -1075,6 +1194,25 @@
         bx.beginPath(); bx.arc(sxp, syp, BH * 0.05, 0, 6.2832); bx.fill();
       }
 
+      // ---- 6.5 airplanes (drawn before clouds so they fly among them) ----
+      if (ready(planeImg)) {
+        for (const pl of planes) {
+          const pa = band(p, 0.30, 0.56, 0.06, 0.06);
+          if (pa < 0.01) continue;
+          let plx = (((pl.x + (reduceMotion ? 0 : tt * pl.spd * pl.dir)) % 1.3) + 1.3) % 1.3;
+          plx = plx * BW - BW * 0.15;
+          const ply = fy(pl.frac, 4) + Math.sin(tt * 0.8 + pl.wob) * BH * 0.015;
+          const psz = BH * 0.12 * pl.s;
+          bx.globalAlpha = pa;
+          bx.save();
+          bx.translate(plx, ply);
+          if (pl.dir < 0) bx.scale(-1, 1); // moving left → mirror the right-facing art
+          bx.drawImage(planeImg, -psz / 2, -psz / 2, psz, psz);
+          bx.restore();
+          bx.globalAlpha = 1;
+        }
+      }
+
       // ---- 7. clouds (supplied pixel sprites) ----
       for (const c of clouds) {
         const ca = band(p, c.frac - 0.12, c.frac + 0.12, 0.06, 0.06);
@@ -1106,7 +1244,7 @@
       }
 
       // ---- 9. parallax mountain ridges (pointy, snow caps, trees) ----
-      const ra = band(p, 0.62, 0.84, 0.06, 0.04);
+      const ra = band(p, 0.60, 0.82, 0.06, 0.03);
       if (ra > 0.01) {
         for (let ri = 0; ri < RIDGES.length; ri++) {
           const rg = RIDGES[ri];
@@ -1152,9 +1290,9 @@
       }
 
       // ---- 10. sea surface line + glints ----
-      const surfA = band(p, 0.76, 0.84, 0.03, 0.03);
+      const surfA = band(p, 0.84, 0.90, 0.02, 0.03);
       if (surfA > 0.01) {
-        const sl = fy(0.8, 6);
+        const sl = fy(0.87, 6);
         bx.fillStyle = rgb([180, 224, 232], 0.5 * surfA);
         for (let x = 0; x < BW; x += 2) {
           const yy = sl + Math.sin(x * 0.2 + tt * 2) * 1.5;
@@ -1169,10 +1307,10 @@
       }
 
       // ---- 11. underwater ----
-      const waterA = band(p, 0.81, 1.0, 0.04, 0.0);
+      const waterA = band(p, 0.86, 1.0, 0.03, 0.0);
       if (waterA > 0.01) {
         // god rays
-        const rayTop = fy(0.8, 6);
+        const rayTop = fy(0.87, 6);
         bx.save();
         bx.globalCompositeOperation = "lighter";
         for (let i = 0; i < 4; i++) {
@@ -1189,21 +1327,76 @@
         }
         bx.restore();
 
-        // fish
+        // fish (supplied pixel sprites — art faces right, flip when going left)
         for (const f of fish) {
           const fa = band(p, f.frac - 0.1, f.frac + 0.1, 0.05, 0.05) * waterA;
+          f._fa = fa;
           if (fa < 0.01) continue;
+          const img = fishImgs[f.img];
+          if (!ready(img)) continue;
           let fx = (((f.x + (reduceMotion ? 0 : tt * f.spd * f.dir)) % 1.2) + 1.2) % 1.2;
           fx = fx * BW - BW * 0.1;
           const fyp = fy(f.frac, 7) + Math.sin(tt * 2 + f.wob) * BH * 0.02;
-          const s = f.s * (scale / 4 + 0.7);
-          bx.fillStyle = rgb(f.c, 0.85 * fa);
-          ellipse(fx, fyp, 3 * s, 1.6 * s);            // body
-          bx.beginPath();                               // tail
-          bx.moveTo(fx - f.dir * 3 * s, fyp);
-          bx.lineTo(fx - f.dir * 5 * s, fyp - 1.6 * s);
-          bx.lineTo(fx - f.dir * 5 * s, fyp + 1.6 * s);
-          bx.closePath(); bx.fill();
+          const sz = BH * 0.07 * f.s;
+          f._x = fx; f._y = fyp; f._sz = sz; // remembered for shark collision
+          bx.globalAlpha = 0.92 * fa;
+          bx.save();
+          bx.translate(fx, fyp);
+          if (f.dir < 0) bx.scale(-1, 1); // moving left → mirror the right-facing art
+          bx.drawImage(img, -sz / 2, -sz / 2, sz, sz);
+          bx.restore();
+          bx.globalAlpha = 1;
+        }
+
+        // shark — predator; its mouth (front-centre) can eat passing fish
+        for (const sh of sharks) {
+          const sa = band(p, sh.frac - 0.12, sh.frac + 0.12, 0.05, 0.05) * waterA;
+          if (sa < 0.01 || !ready(sharkImg)) continue;
+          let sx = (((sh.x + (reduceMotion ? 0 : tt * sh.spd * sh.dir)) % 1.3) + 1.3) % 1.3;
+          sx = sx * BW - BW * 0.15;
+          const syp = fy(sh.frac, 7) + Math.sin(tt * 1.3 + sh.wob) * BH * 0.02;
+          const ssz = BH * 0.18 * sh.s;
+          // mouth point sits at the front, slightly low (where the teeth are)
+          const mouthX = sx + sh.dir * ssz * 0.40;
+          const mouthY = syp + ssz * 0.10;
+          const bite = ssz * 0.16;
+          for (const f of fish) {
+            if (f._fa < 0.01) continue;
+            const dx = f._x - mouthX, dy = f._y - mouthY;
+            const reach = bite + f._sz * 0.4;
+            if (dx * dx + dy * dy < reach * reach) {
+              // mouth contact → always eat
+              spawnGore(f._x, f._y, f._sz);
+              // respawn the fish elsewhere
+              f.frac = rand(0.88, 0.99);
+              f.x = Math.random();
+              f.dir = Math.random() < 0.5 ? 1 : -1;
+              f.img = (Math.random() * fishImgs.length) | 0;
+              f._fa = 0;
+            }
+          }
+          bx.globalAlpha = 0.95 * sa;
+          bx.save();
+          bx.translate(sx, syp);
+          if (sh.dir < 0) bx.scale(-1, 1);
+          bx.drawImage(sharkImg, -ssz / 2, -ssz / 2, ssz, ssz);
+          bx.restore();
+          bx.globalAlpha = 1;
+        }
+
+        // blood mist — expanding, fading red puffs from a kill
+        for (let i = gore.length - 1; i >= 0; i--) {
+          const g = gore[i];
+          if (!reduceMotion) {
+            g.x += g.vx * dt; g.y += g.vy * dt;
+            g.vy -= g.vy * 0.6 * dt;     // drag
+            g.vx -= g.vx * 0.6 * dt;
+            g.r += g.grow * dt;
+            g.life -= dt / 1.1;
+          }
+          if (g.life <= 0) { gore.splice(i, 1); continue; }
+          bx.fillStyle = rgb(g.c, Math.max(0, g.life) * 0.6 * waterA);
+          ellipse(g.x, g.y, g.r, g.r);
         }
 
         // bubbles
@@ -1215,28 +1408,25 @@
           bx.fillRect(bxp | 0, b.y | 0, Math.max(1, b.r | 0), Math.max(1, b.r | 0));
         }
 
-        // sea floor + kelp (very bottom)
+        // sea floor + kelp + coral (very bottom)
         const floorA = band(p, 0.93, 1.0, 0.04, 0.0);
         if (floorA > 0.01) {
           const fl = fy(0.99, 7);
+          const floorY = (fx) => fl + Math.sin(fx * 0.05) * BH * 0.03;
           bx.fillStyle = rgb([10, 30, 36], floorA);
           bx.beginPath(); bx.moveTo(0, BH);
-          for (let x = 0; x <= BW; x += 3) {
-            const yy = fl + Math.sin(x * 0.05) * BH * 0.03;
-            bx.lineTo(x, yy);
-          }
+          for (let x = 0; x <= BW; x += 3) bx.lineTo(x, floorY(x));
           bx.lineTo(BW, BH); bx.closePath(); bx.fill();
-          bx.strokeStyle = rgb([26, 86, 70], 0.7 * floorA);
-          bx.lineWidth = 1.5;
-          for (let i = 0; i < 9; i++) {
-            const kx = (i + 0.5) * (BW / 9);
-            bx.beginPath();
-            for (let s = 0; s <= 1; s += 0.1) {
-              const ky = fl - s * BH * 0.22;
-              const kxx = kx + Math.sin(s * 5 + tt + i) * 4 * s;
-              if (s === 0) bx.moveTo(kxx, ky); else bx.lineTo(kxx, ky);
-            }
-            bx.stroke();
+          // kelp first (taller, behind), then coral nestled in front
+          for (const o of flora) {
+            if (o.kind !== "kelp") continue;
+            const fx = o.x * BW;
+            drawKelp(fx, floorY(fx) + 1, o.h * BH, o.col, o.ph, floorA, tt);
+          }
+          for (const o of flora) {
+            if (o.kind === "kelp") continue;
+            const fx = o.x * BW;
+            drawCoral(fx, floorY(fx) + 1, o.h * BH, o.col, floorA, o.kind);
           }
         }
       }

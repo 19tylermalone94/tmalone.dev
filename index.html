@@ -12,11 +12,11 @@
 </script>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Tyler Malone — Software Engineer</title>
+<title>Tyler Malone · Software Engineer</title>
 <meta name="description" content="Software Engineer specializing in full-stack development, DevOps, distributed systems, and agentic AI." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Hanken+Grotesk:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Jersey+15&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="assets/css/styles.css" />
 </head>
 <body>
@@ -40,7 +40,7 @@
     <a href="#contact">Contact</a>
   </nav>
   <div class="nav__actions">
-    <button type="button" class="nav__fly" id="flyBtn" aria-pressed="false" aria-label="Fly a rocket and fight aliens" title="Fly &amp; fight — WASD/arrows to move, click or Space to shoot, Shift to boost">
+    <button type="button" class="nav__fly" id="flyBtn" aria-pressed="false" aria-label="Fly a rocket and fight aliens" title="Fly &amp; fight: WASD/arrows to move, click or Space to shoot, Shift to boost">
       <span class="nav__fly-ico" aria-hidden="true">🚀</span>
     </button>
     <a href="#contact" class="nav__cta">Available</a>
@@ -122,7 +122,6 @@
 <!-- ============ HERO ============ -->
 <section class="hero" id="hero" data-layer="Space" data-alt="Low Earth orbit &amp; beyond">
   <div class="hero__media" aria-hidden="true">
-    <img src="assets/img/carina.jpg" alt="" class="hero__img" data-parallax="0.18" />
     <div class="hero__veil"></div>
   </div>
   <canvas id="starfield" class="hero__stars" aria-hidden="true"></canvas>
@@ -135,7 +134,7 @@
     </h1>
 
     <p class="hero__lede reveal" data-d="4">
-      Software Engineer specializing in full-stack development, DevOps, distributed systems, and agentic AI.
+      Software Engineer specializing in full-stack development.
     </p>
 
     <dl class="hero__stats reveal" data-d="5">
@@ -150,7 +149,6 @@
 <!-- ============ ABOUT ============ -->
 <section class="section section--layer about" id="about" data-layer="Exosphere" data-alt="700–10,000 km">
   <div class="section__bg" aria-hidden="true">
-    <img src="assets/img/exosphere.jpg" alt="" data-parallax="0.07" />
     <div class="section__veil"></div>
   </div>
   <div class="section__head reveal-up">
@@ -161,8 +159,8 @@
 
   <div class="about__grid">
     <div class="about__body">
-      <p class="lead">I am a software engineer specializing in agentic AI systems — agent memory, retrieval, and tool use — and the full-stack and DevOps work required to deploy them. Most recently I built WarTable: an AI agent that operates over a user's connected apps and knowledge bases, a multi-agent system that scores business health, and the supporting infrastructure on GCP. I primarily work with Next.js, Nest.js, Prisma, PostgreSQL, and ChromaDB, and I handle projects from development through deployment.</p>
-      <p>I served four years in the US Marine Corps as a refrigeration technician and later managed maintenance for a fleet of generators. I then studied computer science at Colorado State University, where I worked as a teaching assistant, conducted research, and spent a year on a robotics project. I am currently available for contract work and open to roles in the United States or Japan.</p>
+      <p class="lead">I am a full-stack software engineer. Most recently, I built WarTable.ai. I primarily work with Next.js, Nest.js, Prisma, and PostgreSQL, and I can handle projects from development through deployment. I have an appreciation for both chaotic and orderly working environments.</p>
+      <p>I served four years in the US Marine Corps as a refrigeration technician and later managed maintenance for a fleet of field-expedient utilities equipment, including generators, electrical distribution gear, ECUs, water-purification gear, and much more. I then studied computer science at Colorado State University, where I worked as a teaching assistant, conducted research, did a little game development, and spent a year on a robotics project.</p>
     </div>
     <figure class="about__figure reveal-up">
       <div class="planet"><img src="assets/img/portrait.jpg" alt="Tyler Malone" /></div>
@@ -183,7 +181,6 @@
 
     <li class="entry reveal-up entry--scene" data-layer="Thermosphere" data-alt="80–700 km">
       <div class="entry__bg" aria-hidden="true">
-        <img src="assets/img/thermosphere.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
       <div class="entry__meta">
@@ -192,12 +189,10 @@
       </div>
       <div class="entry__main">
         <h3 class="entry__org">WarTable by Freestyle Consulting</h3>
-        <p class="entry__role">Software Engineer (Full-Stack &amp; DevOps) — Contract</p>
+        <p class="entry__role">Software Engineer (Full-Stack &amp; DevOps), Contract</p>
         <div class="entry__text">
-          <p>Took WarTable from nothing to a production application built around Athena, an AI agent users chat with on the web and on mobile. Athena can connect to roughly 3,000 apps through Pipedream Connect, and I built a filtering layer that lets users turn individual MCP server tools on or off, plus support for dynamic client MCP servers so users can plug in their own.</p>
-          <p>I built the knowledge base system on ChromaDB: users connect and browse their Drive apps and sync files into knowledge bases, where document contents are extracted, chunked, and embedded (or summarized), and both Athena and the WBHI draw on those alongside the connected apps. Syncing is automatic — users can watch a folder, get a WarTable notification when new files land, and choose to sync all, some, or none, with an ignore feature for files they want skipped. Memory is handled with mem0, scoped at both the user and workspace level, and real-time notifications and AI response streaming run over WebSockets.</p>
-          <p>I built the agent orchestration behind the WarTable Business Health Index (WBHI), where agents divide and conquer across a user's connected apps and notes, discuss findings among themselves, and produce a score for how the business is doing. On top of it I added a guided feedback loop: tasks are generated from your last evaluation, each with a predicted score increase and a definition of done, followed by an agentic verification step that checks whether the requirements were genuinely met — keeping the score honest and everyone accountable.</p>
-          <p>I added a Routines feature for scheduling an agent to carry out long, multi-step tasks or skills, and built the app configuration for billing, credits, plan features, and quotas. Those are managed through a completely separate admin app I also built, which communicates directly with the database — so the WarTable backend only exposes endpoints meant for a logged-in user, with no admin endpoints in the main app. I set up staging, dev, and release environments on GCP, deploying to Cloud Run with GitHub Actions and Docker (including migrations), and used Linear for project management.</p>
+          <p>I built WarTable from nothing into a live, monetized product with real users. At its core is Athena, an AI agent users chat with that can act across roughly 3,000 connected apps, with fine-grained control over which tools it can use and support for users plugging in their own. I built the retrieval system on ChromaDB so the agent can draw on a user's synced documents, with memory that persists across conversations and real-time streaming over WebSockets.</p>
+          <p>I also built the multi-agent system behind the WarTable Business Health Index, where agents work across a user's data to score the health of their business and generate verified, prioritized tasks to improve it. On the infrastructure side I owned the full pipeline: billing and credits, multiple environments on GCP, and CI/CD to Cloud Run. It is a product I took end to end, from architecture to paying customers.</p>
         </div>
         <ul class="chips" aria-label="Technologies">
           <li>Next.js</li><li>Nest.js</li><li>Prisma + PostgreSQL</li><li>GCP</li><li>Firebase</li><li>OpenRouter</li><li>Pipedream</li><li>Vapi</li><li>ChromaDB</li><li>mem0</li><li>Stripe</li>
@@ -207,7 +202,6 @@
 
     <li class="entry reveal-up entry--scene" data-layer="Mesosphere" data-alt="50–85 km">
       <div class="entry__bg" aria-hidden="true">
-        <img src="assets/img/mesosphere.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
       <div class="entry__meta">
@@ -216,10 +210,10 @@
       </div>
       <div class="entry__main">
         <h3 class="entry__org">HYVV</h3>
-        <p class="entry__role">Software Engineer (Full-Stack &amp; DevOps) — Contract</p>
+        <p class="entry__role">Software Engineer (Full-Stack &amp; DevOps), Contract</p>
         <div class="entry__text">
-          <p>Built early AI features for the platform on the OpenAI API. One was a conversational agent backed by a clipboard-style questionnaire and talking points that extracted context from users so the platform could plan and carry out tasks for their business. Another let users generate products and features — complete with images — from a single prompt. This was early 2025, when AI apps were still mostly structured output behind a button, before heavy tool use or MCP.</p>
-          <p>After the other engineers separated from the company, I took responsibility for the entire development pipeline — running everything on GCP, handling CI/CD through GitHub Actions, and managing the database.</p>
+          <p>Built the platform's first AI features on the OpenAI API: a conversational agent that gathered context from users to plan and carry out work for their business, and a tool that generated products and features, images included, from a single prompt. This was early 2025, when most AI apps were still structured output behind a button, before heavy tool use or MCP.</p>
+          <p>When the other engineers left the company, I took over the entire development pipeline on my own, running everything on GCP and handling CI/CD and the database.</p>
         </div>
         <ul class="chips" aria-label="Technologies">
           <li>OpenAI API</li><li>Structured Output</li><li>Next.js</li><li>Node.js</li><li>Express</li><li>Prisma + PostgreSQL</li><li>GCP</li><li>Stripe</li><li>GitHub Actions</li><li>CI/CD</li>
@@ -229,7 +223,6 @@
 
     <li class="entry reveal-up entry--scene" data-layer="Stratosphere" data-alt="12–50 km">
       <div class="entry__bg" aria-hidden="true">
-        <img src="assets/img/stratosphere.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
       <div class="entry__meta">
@@ -240,9 +233,9 @@
         <h3 class="entry__org">Project Sustain, Colorado State University</h3>
         <p class="entry__role">Software Engineer &amp; Research Assistant</p>
         <div class="entry__text">
-          <p>My first feature on RamDesk — the CSU computer-science department's platform — was a statistics suite: Python backend endpoints feeding frontend graphs and plots that surface student grades, submission counts, submission timing, and similar metrics.</p>
-          <p>I then extended a tool built to detect AI-written student papers by adding a system that flags suspicious references in a paper's bibliography. It uses OpenAI structured output to extract citation details from any format (MLA and the rest), then cross-checks that metadata against the open web. The checker tries the cheapest signal first — a DOI if there is one, then a URL, and finally an author/title/year lookup that actually has to search — and runs across DuckDuckGo, Bing, and Google so a rate limit on one engine falls through to the others. It drives Selenium with Firefox inside a container; getting past bot detection is hard, so the system deliberately errs toward false negatives, only flagging a reference when nothing checks out.</p>
-          <p>The verification work ran in Docker and was dispatched to worker machines, since the web-automation side is memory-heavy — solid, hands-on Docker experience. I also built an admin view showing who is currently logged in and when each user last signed in, generated student profile pictures through the Canvas API, and worked constantly against the Canvas LMS API — requesting scopes through my team lead — to build grading and inspection features, plus faster replacements for things the sluggish Canvas web shell already does. Along the way I helped produce tutorial videos and user-facing documentation, and contributed to HoneyComb, a UAV/AI drone-swarm system for agricultural intelligence. I received the REI Undergraduate Research Stipend in Summer 2025.</p>
+          <p>I built a statistics suite for RamDesk, the CSU computer science department's platform: Python endpoints feeding frontend graphs and plots of student grades, submission counts, submission timing, and similar metrics.</p>
+          <p>I also built a citation checker that flags suspicious references in a paper's bibliography. It verifies citations against the open web with some scraping and surfaces questionable ones for faculty to review, deliberately leaning toward false negatives so it only flags a reference when nothing checks out. The verification ran in Docker, dispatched across worker machines, which gave me solid hands-on Docker experience.</p>
+          <p>Beyond that, I worked constantly against the Canvas LMS API to build grading and inspection features and faster replacements for parts of the sluggish Canvas web interface, built admin views, produced tutorial videos and documentation, and contributed to HoneyComb, a UAV drone-swarm system for agricultural intelligence. I received the REI Undergraduate Research Stipend in Summer 2025.</p>
         </div>
         <ul class="chips" aria-label="Technologies">
           <li>Python</li><li>Flask</li><li>React</li><li>MongoDB</li><li>OpenAI API</li><li>Structured Output</li><li>Selenium</li><li>Docker</li><li>Canvas API</li><li>Web Scraping</li><li>Data Viz</li><li>UAV Systems</li>
@@ -252,7 +245,6 @@
 
     <li class="entry reveal-up entry--scene" data-layer="Cloud Line" data-alt="5,000 m">
       <div class="entry__bg" aria-hidden="true">
-        <img src="assets/img/peak.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
       <div class="entry__meta">
@@ -263,7 +255,7 @@
         <h3 class="entry__org">Colorado State University</h3>
         <p class="entry__role">Undergraduate Teaching Assistant</p>
         <div class="entry__text">
-          <p>I taught Python (Fall 2023), Java (Spring 2024), and Software Development (Fall 2024 onward). I mentored more than 200 students each semester in coding, debugging, and software best practices, and I developed labs and course materials.</p>
+          <p>I taught Python (Fall 2023), Java (Spring 2024), and Software Development (Fall 2024 onward), mentoring more than 200 students each semester in coding, debugging, and software best practices. One semester, working with a new instructor, I wrote all of the programming assignments for the course myself, including the instructions, starter material, and full solutions, along with other labs and course materials.</p>
         </div>
         <ul class="chips" aria-label="Technologies">
           <li>Teaching</li><li>Public Speaking</li><li>Mentorship</li><li>Python</li><li>Java</li><li>Software Development</li>
@@ -273,7 +265,6 @@
 
     <li class="entry reveal-up entry--scene" data-layer="Alpine" data-alt="4,000 m">
       <div class="entry__bg" aria-hidden="true">
-        <img src="assets/img/mountains.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
       <div class="entry__meta">
@@ -284,7 +275,7 @@
         <h3 class="entry__org">CSU Robotics Lab</h3>
         <p class="entry__role">Robotics Research Volunteer</p>
         <div class="entry__text">
-          <p>A year of unpaid, volunteer robotics research at CSU — I took it for the chance to work with expensive hardware. A friend from the video game dev club I'd done game jams with got me into the lab before he transferred schools. The lab had an old ROS-based Fetch robot and a newer ROS2 robot I worked with virtually. My first task was to master the Fetch in simulation: I spent about a month buried in the ROS and Fetch docs, running the demos, and learning the fiddly details — placing AR tags in Gazebo, catching when configs are in meters versus millimeters, lighting, and driving and monitoring the robot through RViz.</p>
+          <p>A year of unpaid, volunteer robotics research at CSU, which I took for the chance to work with expensive hardware. A friend from the video game dev club I'd done game jams with got me into the lab before he transferred schools. The lab had an old ROS-based Fetch robot and a newer ROS2 robot I worked with virtually. My first task was to master the Fetch in simulation: I spent about a month buried in the ROS and Fetch docs, running the demos, and learning the fiddly details, like placing AR tags in Gazebo, catching when configs are in meters versus millimeters, lighting, and driving and monitoring the robot through RViz.</p>
           <p>Next I checked whether the physical robot still worked, now that the student who had been running it was gone, so I spent several nights verifying that everything I'd done in simulation held up on real hardware, writing scripts to reset the robot to known positions while testing routines and keeping it well clear of obstacles. Late one night, with the building empty, I mapped the lobby of the CS building using ROS's Fetch navigation and mapping nodes, building an occupancy map from the LIDAR and laser scans and marking out no-go zones.</p>
           <p>On Halloween we ran a demo on that map: Fetch used ROS navigation and localization plus a bit I wrote with YOLO to spot a person, then roamed to a waypoint, looked around, picked someone, rolled up playing Ghostbusters, delivered a Halloween joke in spooky TTS, extended its arm to hand over candy from a pumpkin bucket, and tucked and scurried off to the next waypoint. I also started a project bridging the Unity game engine to ROS2 for research with TurtleBot.</p>
         </div>
@@ -296,7 +287,6 @@
 
     <li class="entry reveal-up entry--scene" data-layer="High Desert" data-alt="1,500 m">
       <div class="entry__bg" aria-hidden="true">
-        <img src="assets/img/canyon.jpg" alt="" data-parallax="0.05" />
         <div class="entry__veil"></div>
       </div>
       <div class="entry__meta">
@@ -307,10 +297,10 @@
         <h3 class="entry__org">US Marine Corps</h3>
         <p class="entry__role">Refrigeration Technician · Utilities Operations SNCO · Utilities Quality Control SNCO</p>
         <div class="entry__text">
-          <p>I served as a Meritorious Corporal in the 4th Marines, 3rd Marine Division. I started as a refrigeration technician — air conditioning and HVAC/R — reading schematics, troubleshooting from technical manuals, and repairing equipment, and my scope quickly grew beyond AC to electrical systems, diesel-engine generators, and water purification systems, along with the inventory and maintenance they required.</p>
-          <p>I moved up to Quality Control NCO and effectively became the operator-maintenance manager for the section. Most equipment had tasks the operator was responsible for and others handled at a different echelon — scheduled or corrective — and the program was a mess when I arrived. I brought our entire generator fleet under control: more than fifty AMMPS sets ranging from 1.5kW to 30kW, powered by Cummins, Kubota, and Yanmar engines. I owned the scheduled maintenance while a counterpart handled corrective, tracking technician sheets, scheduling services, moving equipment, and ordering parts through a clunky maintenance system where every level of the chain of command had its own rules for how fields should be filled in and categorized. You would think it could scan a technical manual, match a manufacturer ID, and load the checklists and intervals automatically — it could not. Once it was sorted, it ran smoothly. I was trusted enough with the maintenance-management process that I was also put in charge of the company's combat engineer equipment — heavy demolition and construction gear — even though we had no combat engineers.</p>
-          <p>At MWX — the Marine Corps' largest field exercise, at 29 Palms — I designed the power plan and the full packing list for power operations, plus several on-base operations, and was relied on heavily. After a vehicle rollover I was moved onto tactical driving when I mentioned I held a license, and ran some genuinely gnarly JLTV driving courses. In the field I worked as the engineer, out with a couple of generators, cables, and breakers, constantly packing up, repositioning, and concealing in terrain and canyons during a notional war exercise. My 5kW set started leaking oil around the filter with no way to get parts forward, so I fell back to a far less forgiving backup — a dirty tank and a temperament where you could look at it wrong and it would quit. I spent three days more or less head-down in that machine, working the throttle by hand and siphoning fuel to keep it alive long enough for the comms and fire-support teams to do their jobs.</p>
-          <p>When COVID hit I put in a lot of work keeping that equipment running, and the 4th Marine Regiment's commanding officer, Col. Tracy, awarded me the Soo Chow Creek Medal — the same commander who gave me a Meritorious Mast for taking first place in the company shooting competition. The top shooters went on to compete against the Japan Ground Self-Defense Force in a joint match that even had US special forces in it; we lost, but it was an incredible experience. I also carried color guard for my company as the left rifle bearer, scored a 292/300 PFT and a near-perfect CFT, earned meritorious promotions, volunteered on beach cleanups, and took Japanese classes. I chipped away at online coursework the whole time — once finishing a class from the field — and started coding in 2021 with JavaScript on freeCodeCamp.</p>
+          <p>I served as a Meritorious Corporal in the 4th Marines, 3rd Marine Division. I started as a refrigeration technician, working air conditioning and HVAC/R, reading schematics, troubleshooting from technical manuals, and repairing equipment, and my scope quickly grew beyond AC to electrical systems, diesel-engine generators, and water purification systems, along with the inventory and maintenance they required.</p>
+          <p>I moved up to Quality Control NCO and effectively became the operator-maintenance manager for the section. Most equipment had tasks the operator was responsible for and others handled at a different echelon, scheduled or corrective, and the program was a mess when I arrived. I brought our entire generator fleet under control: more than fifty AMMPS sets ranging from 1.5kW to 60kW, powered by Cummins, Kubota, and Yanmar engines. I owned the scheduled maintenance while a counterpart handled corrective, tracking technician sheets, scheduling services, moving equipment, and ordering parts through a clunky maintenance system where every level of the chain of command had its own rules for how fields should be filled in and categorized. You would think it could scan a technical manual, match a manufacturer ID, and load the checklists and intervals automatically. It could not. Once it was sorted, it ran smoothly. I was trusted enough with the maintenance-management process that I was also put in charge of the company's combat engineer equipment, heavy demolition and construction gear, even though we had no combat engineers.</p>
+          <p>At MWX, the Marine Corps' largest field exercise, at 29 Palms, I designed the power plan and the full packing list for power operations, plus several on-base operations, and was relied on heavily. After a vehicle rollover I was moved onto tactical driving when I mentioned I held a license, and ran some genuinely gnarly JLTV driving courses. In the field I worked as the engineer, out with a couple of generators, cables, and breakers, constantly packing up, repositioning, and concealing in terrain and canyons during a notional war exercise. My 5kW set started leaking oil around the filter with no way to get parts forward, so I fell back to a far less forgiving backup: a dirty tank with a temperament where you could look at it wrong and it would quit. I spent three days more or less head-down in that machine, working the throttle by hand and siphoning fuel to keep it alive long enough for the comms and fire-support teams to do their jobs.</p>
+          <p>When COVID hit I put in a lot of work keeping that equipment running, and the 4th Marine Regiment's commanding officer, Col. Tracy, awarded me the Soo Chow Creek Medal. He was also the commander who gave me a Meritorious Mast for taking first place in the company shooting competition. The top shooters went on to compete against the Japan Ground Self-Defense Force in a joint match that even had US special forces in it; we lost, but it was an incredible experience. I also carried color guard for my company as the left rifle bearer, scored a 292/300 PFT, earned meritorious promotions, volunteered on beach cleanups, and took Japanese classes. I chipped away at online coursework the whole time, once finishing a class from the field, and started coding in 2021 with JavaScript on freeCodeCamp.</p>
         </div>
         <ul class="chips" aria-label="Technologies">
           <li>Leadership</li><li>Maintenance Management</li><li>Power Generation</li><li>HVAC/R</li><li>Diesel Generators</li><li>Electrical Systems</li><li>Troubleshooting</li><li>Logistics</li>
@@ -324,7 +314,6 @@
 <!-- ============ EDUCATION ============ -->
 <section class="section section--layer section--hills education" id="education" data-layer="Rolling Hills" data-alt="800 m">
   <div class="section__bg" aria-hidden="true">
-    <img src="assets/img/hills.jpg" alt="" data-parallax="0.06" />
     <div class="section__veil"></div>
   </div>
   <div class="section__head reveal-up">
@@ -352,7 +341,6 @@
 <!-- ============ SKILLS ============ -->
 <section class="section section--layer section--lake skills" id="skills" data-layer="Lakeshore" data-alt="150 m">
   <div class="section__bg" aria-hidden="true">
-    <img src="assets/img/lake.jpg" alt="" data-parallax="0.05" />
     <div class="section__veil"></div>
   </div>
   <div class="section__head reveal-up">
@@ -379,7 +367,6 @@
 <!-- ============ SERVICE RECORD ============ -->
 <section class="section section--layer section--coast service" id="service" data-layer="Coast" data-alt="Sea level">
   <div class="section__bg" aria-hidden="true">
-    <img src="assets/img/beach.jpg" alt="" data-parallax="0.05" />
     <div class="section__veil"></div>
   </div>
   <div class="section__head reveal-up">
@@ -423,7 +410,6 @@
 <!-- ============ CONTACT ============ -->
 <section class="section contact" id="contact" data-layer="Ocean" data-alt="Below sea level">
   <div class="contact__media" aria-hidden="true">
-    <img src="assets/img/ocean.jpg" alt="" data-parallax="0.1" />
     <div class="contact__veil"></div>
   </div>
 
@@ -454,7 +440,6 @@
 
 <footer class="foot">
   <span class="foot__name">Tyler Malone</span>
-  <span class="foot__credit">Imagery: NASA · ESA · STScI · USGS/NPS · Wikimedia Commons — public domain &amp; CC0</span>
   <a href="#top" class="foot__top">Back to top ↑</a>
 </footer>
 
