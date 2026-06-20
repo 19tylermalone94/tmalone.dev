@@ -873,6 +873,8 @@
     const fishImgs = [1, 2].map((n) => load("assets/img/fish" + n + ".png")); // sprites face right
     const sharkImg = load("assets/img/shark.png"); // faces right
     const planeImg = load("assets/img/plane.png"); // faces right
+    const boatImg = load("assets/img/boat.png");   // faces right
+    const whaleImg = load("assets/img/whale.png"); // faces right
 
     // parallax mountain ridges (far → near). Pointy peaks built from
     // irregular peak/valley nodes; far ridges get snow, near ridge is forested.
@@ -911,7 +913,7 @@
     const SCALE = (() => Math.max(3, Math.round(innerWidth / 520)))();
     let scale = SCALE;
     let W, H, BW, BH;
-    let stars = [], nebulae = [], clouds = [], fish = [], bubbles = [], birds = [], sharks = [], gore = [], planes = [], flora = [];
+    let stars = [], nebulae = [], clouds = [], fish = [], bubbles = [], birds = [], sharks = [], gore = [], planes = [], flora = [], boats = [], whales = [];
     let p = 0;                 // eased scroll fraction
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
     let t0 = performance.now();
@@ -947,6 +949,10 @@
       // shark — a single roaming predator
       sharks = [{ frac: rand(0.89, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.05, 0.08), s: rand(1.0, 1.25), wob: rand(0, 6.28) }];
       gore = [];
+      // boat — drifts along the sea surface
+      boats = [{ x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.006, 0.012), ph: rand(0, 6.28) }];
+      // whale — a lone giant gliding through the deep
+      whales = [{ frac: rand(0.91, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.012, 0.022), s: rand(1.0, 1.3), wob: rand(0, 6.28) }];
       // bubbles
       bubbles = [];
       for (let i = 0; i < 40; i++) {
@@ -1304,6 +1310,24 @@
         for (let x = gxp - BW * 0.06; x < gxp + BW * 0.06; x += 2) {
           if (Math.random() < 0.5) bx.fillRect(x, (sl + Math.sin(x + tt * 3) * 2) | 0, 2, 1);
         }
+
+        // boat — rides the waterline, rocking with the swell
+        if (ready(boatImg)) {
+          for (const bt of boats) {
+            let btx = (((bt.x + (reduceMotion ? 0 : tt * bt.spd * bt.dir)) % 1.2) + 1.2) % 1.2;
+            btx = btx * BW - BW * 0.1;
+            const bsz = BH * 0.13;
+            const rock = Math.sin(tt * 1.1 + bt.ph);
+            bx.globalAlpha = surfA;
+            bx.save();
+            bx.translate(btx, sl - bsz * 0.26 + rock * BH * 0.006); // hull dips below the line
+            if (bt.dir > 0) bx.scale(-1, 1); // boat art faces left → mirror when sailing right
+            bx.rotate(rock * 0.05);
+            bx.drawImage(boatImg, -bsz / 2, -bsz / 2, bsz, bsz);
+            bx.restore();
+            bx.globalAlpha = 1;
+          }
+        }
       }
 
       // ---- 11. underwater ----
@@ -1326,6 +1350,23 @@
           bx.closePath(); bx.fill();
         }
         bx.restore();
+
+        // whale — a lone giant gliding through the deep (behind the fish)
+        for (const wh of whales) {
+          const wa = band(p, wh.frac - 0.14, wh.frac + 0.14, 0.05, 0.05) * waterA;
+          if (wa < 0.01 || !ready(whaleImg)) continue;
+          let wx = (((wh.x + (reduceMotion ? 0 : tt * wh.spd * wh.dir)) % 1.4) + 1.4) % 1.4;
+          wx = wx * BW - BW * 0.2;
+          const wyp = fy(wh.frac, 7) + Math.sin(tt * 0.8 + wh.wob) * BH * 0.03;
+          const wsz = BH * 0.32 * wh.s;
+          bx.globalAlpha = 0.88 * wa;
+          bx.save();
+          bx.translate(wx, wyp);
+          if (wh.dir < 0) bx.scale(-1, 1);
+          bx.drawImage(whaleImg, -wsz / 2, -wsz / 2, wsz, wsz);
+          bx.restore();
+          bx.globalAlpha = 1;
+        }
 
         // fish (supplied pixel sprites — art faces right, flip when going left)
         for (const f of fish) {
