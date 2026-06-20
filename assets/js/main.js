@@ -1129,7 +1129,11 @@
       const dt = Math.min(0.05, (now - lastMs) / 1000); lastMs = now;
       const m = metrics();
       const fTop = m.sy / m.sh;                 // true world fraction (top of viewport)
-      const target = m.sy / m.docH;
+      // clamp to [0,1]: mobile browsers can momentarily report scrollY past
+      // docH while the address bar collapses/expands near the bottom of the
+      // page, and band()'s zero-width fOut at hi=1 turns any overshoot into
+      // a divide-by-zero that blanks the ocean layer out entirely
+      const target = clamp01(m.sy / m.docH);
       p += (target - p) * (reduceMotion ? 1 : 0.12);
       mouse.x += (mouse.tx - mouse.x) * 0.06;
       mouse.y += (mouse.ty - mouse.y) * 0.06;
@@ -1507,7 +1511,7 @@
     if (reduceMotion) window.addEventListener("scroll", () => requestAnimationFrame(draw), { passive: true });
 
     resize();
-    p = (function () { const m = metrics(); return m.sy / m.docH; })();
+    p = (function () { const m = metrics(); return clamp01(m.sy / m.docH); })();
     requestAnimationFrame(draw);
   })();
 })();
