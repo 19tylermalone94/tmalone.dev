@@ -789,4 +789,481 @@
       py = clamp(py, MARGIN, innerHeight - MARGIN);
     }, { passive: true });
   })();
+
+  /* ============================================================
+     PIXEL WORLD SCENE — a single procedural retro descent rendered
+     behind the whole page. Scroll fraction 0→1 drives a continuous
+     journey: deep space + stars/nebula → a growing pixel Earth →
+     aurora → daytime sky with sun + clouds → parallax mountains →
+     the sea surface → underwater (light rays, fish, bubbles, kelp)
+     fading into the deep. Drawn into a tiny low-res buffer and
+     scaled up with smoothing off, for genuine chunky pixels.
+     ============================================================ */
+  (function worldScene() {
+    const cv = document.getElementById("worldScene");
+    if (!cv) return;
+    const ctx = cv.getContext("2d");
+    const buf = document.createElement("canvas");
+    const bx = buf.getContext("2d");
+
+    // ---- helpers ----
+    const clamp01 = (n) => (n < 0 ? 0 : n > 1 ? 1 : n);
+    const lerp = (a, b, t) => a + (b - a) * t;
+    // trapezoid window with feathered edges → smooth appear/disappear
+    function band(t, lo, hi, fIn, fOut) {
+      if (t < lo - fIn || t > hi + fOut) return 0;
+      if (t < lo) return (t - (lo - fIn)) / fIn;
+      if (t > hi) return 1 - (t - hi) / fOut;
+      return 1;
+    }
+    function rgb(c, a) { return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")"; }
+
+    // ---- sky palette across the descent (fraction → colour) ----
+    const SKY = [
+      [0.00, [4, 5, 11]],     // the void
+      [0.20, [6, 9, 22]],
+      [0.30, [11, 17, 44]],   // edge of space
+      [0.40, [18, 33, 78]],
+      [0.50, [33, 64, 126]],  // upper atmosphere
+      [0.58, [60, 112, 178]],
+      [0.65, [120, 178, 220]],// bright day sky
+      [0.71, [158, 202, 228]],// haze near horizon
+      [0.76, [96, 168, 190]],
+      [0.80, [40, 126, 146]], // sea surface
+      [0.86, [16, 88, 108]],
+      [0.93, [8, 52, 70]],
+      [1.00, [3, 18, 27]],    // the deep
+    ];
+    function skyColor(f) {
+      f = clamp01(f);
+      for (let i = 1; i < SKY.length; i++) {
+        if (f <= SKY[i][0]) {
+          const a = SKY[i - 1], b = SKY[i];
+          const t = (f - a[0]) / (b[0] - a[0]);
+          return [
+            Math.round(lerp(a[1][0], b[1][0], t)),
+            Math.round(lerp(a[1][1], b[1][1], t)),
+            Math.round(lerp(a[1][2], b[1][2], t)),
+          ];
+        }
+      }
+      return SKY[SKY.length - 1][1];
+    }
+
+    // pixel-art celestial bodies (supplied assets, drawn flat with no zoom)
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const ready = (img) => img && img.complete && img.naturalWidth > 0;
+    // in reduced-motion mode the loop only redraws on scroll/resize, so an
+    // image that loads after the first draw would never paint — kick a redraw.
+    const onAssetLoad = () => { if (reduceMotion) requestAnimationFrame(draw); };
+    const load = (src) => { const im = new Image(); im.onload = onAssetLoad; im.src = src; return im; };
+    const planetImg = load("assets/img/planet.png");
+    const moonImg = load("assets/img/moon.png");
+    const cloudImgs = [1, 2, 3, 4, 5, 6, 7].map((n) => load("assets/img/cloud" + n + ".png"));
+
+    // parallax mountain ridges (far → near). Pointy peaks built from
+    // irregular peak/valley nodes; far ridges get snow, near ridge is forested.
+    const RIDGES = [
+      { frac: 0.73, travel: 2.8, amp: 0.22, base: 0.14, col: [104, 128, 164], snow: true },
+      { frac: 0.76, travel: 4.0, amp: 0.28, base: 0.28, col: [62, 86, 122], snow: true },
+      { frac: 0.79, travel: 5.4, amp: 0.18, base: 0.46, col: [28, 52, 44], trees: true },
+    ];
+    // irregular ridgeline: alternating peaks (tall) and valleys (low) at random
+    // spacing/height → jagged, non-repeating mountains. Normalised t in [-0.05,1.05].
+    function makeNodes() {
+      const nodes = []; let t = -0.05, up = true;
+      while (t < 1.08) {
+        nodes.push({ t: t, h: up ? rand(0.5, 1.0) : rand(0.0, 0.3) });
+        t += up ? rand(0.05, 0.13) : rand(0.03, 0.09);
+        up = !up;
+      }
+      return nodes;
+    }
+    RIDGES.forEach((rg) => { rg.nodes = makeNodes(); });
+    // sample a ridge's normalised height (0..1) across every buffer column
+    function sampleRidge(nodes) {
+      const arr = new Float32Array(BW + 1);
+      let i = 0;
+      for (let x = 0; x <= BW; x++) {
+        const u = x / BW;
+        while (i < nodes.length - 2 && nodes[i + 1].t < u) i++;
+        const a = nodes[i], b = nodes[i + 1];
+        const f = Math.max(0, Math.min(1, (u - a.t) / (b.t - a.t)));
+        arr[x] = a.h + (b.h - a.h) * f;
+      }
+      return arr;
+    }
+
+    // ---- state ----
+    const SCALE = (() => Math.max(3, Math.round(innerWidth / 520)))();
+    let scale = SCALE;
+    let W, H, BW, BH;
+    let stars = [], nebulae = [], clouds = [], fish = [], bubbles = [], birds = [];
+    let p = 0;                 // eased scroll fraction
+    const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+    let t0 = performance.now();
+
+    function seed() {
+      // stars (buffer space, wrap-scrolled in the space band)
+      stars = [];
+      const sn = Math.floor((BW * BH) / 850);
+      for (let i = 0; i < sn; i++) {
+        stars.push({
+          x: rand(0, BW), y: rand(0, BH),
+          z: rand(0.25, 1), ph: rand(0, 6.28), tw: rand(0.4, 2),
+          hue: Math.random() < 0.16 ? "warm" : (Math.random() < 0.2 ? "cool" : "white"),
+        });
+      }
+      // nebula clouds
+      nebulae = [];
+      const NEB = [[60, 30, 120], [120, 40, 90], [22, 70, 96], [40, 30, 110]];
+      for (let i = 0; i < 5; i++) {
+        nebulae.push({ x: rand(0, BW), y: rand(0, BH * 1.2), r: rand(BH * 0.25, BH * 0.6), c: NEB[i % NEB.length], a: rand(0.05, 0.12) });
+      }
+      // drifting sky clouds (frac = where in the descent they live)
+      clouds = [];
+      for (let i = 0; i < 16; i++) {
+        clouds.push({ frac: rand(0.5, 0.72), x: rand(-0.1, 1.1), w: rand(0.16, 0.34), spd: rand(0.004, 0.018) * (Math.random() < 0.5 ? -1 : 1), depth: rand(0.4, 1), img: (Math.random() * cloudImgs.length) | 0 });
+      }
+      // fish (underwater)
+      fish = [];
+      const FC = [[230, 180, 90], [220, 120, 110], [120, 200, 210], [180, 210, 140], [200, 160, 220]];
+      for (let i = 0; i < 14; i++) {
+        fish.push({ frac: rand(0.84, 0.99), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.02, 0.06), s: rand(0.6, 1.6), c: FC[i % FC.length], wob: rand(0, 6.28) });
+      }
+      // bubbles
+      bubbles = [];
+      for (let i = 0; i < 40; i++) {
+        bubbles.push({ x: rand(0, BW), y: rand(0, BH), r: rand(0.6, 2.4) * (scale / 4 + 0.5), spd: rand(6, 22) });
+      }
+      // birds
+      birds = [];
+      for (let i = 0; i < 6; i++) {
+        birds.push({ frac: rand(0.6, 0.76), x: rand(0, 1), spd: rand(0.01, 0.03), s: rand(0.8, 1.6), ph: rand(0, 6.28) });
+      }
+    }
+
+    function resize() {
+      scale = Math.max(3, Math.round(innerWidth / 520));
+      W = cv.width = Math.floor(innerWidth);
+      H = cv.height = Math.floor(innerHeight);
+      cv.style.width = innerWidth + "px";
+      cv.style.height = innerHeight + "px";
+      BW = buf.width = Math.max(2, Math.ceil(innerWidth / scale));
+      BH = buf.height = Math.max(2, Math.ceil(innerHeight / scale));
+      ctx.imageSmoothingEnabled = false;
+      bx.imageSmoothingEnabled = false;
+      seed();
+    }
+
+    function metrics() {
+      const sh = document.documentElement.scrollHeight;
+      const sy = window.scrollY || window.pageYOffset || 0;
+      return { sh: sh, sy: sy, docH: Math.max(1, sh - innerHeight) };
+    }
+
+    // vertical screen position (buffer space) for a feature centred at
+    // scroll fraction `frac`; `travel` controls parallax speed.
+    function fy(frac, travel) { return BH * 0.5 + (frac - p) * BH * travel; }
+
+    function ellipse(cx, cy, rx, ry) {
+      bx.beginPath(); bx.ellipse(cx, cy, Math.max(0.5, rx), Math.max(0.5, ry), 0, 0, 6.2832); bx.fill();
+    }
+
+    // little evergreen (stacked triangles + trunk) sitting on (x, baseY)
+    function tree(x, baseY, h) {
+      const tw = Math.max(1, h * 0.14);
+      bx.fillStyle = "rgb(40,28,18)";
+      bx.fillRect(x - tw / 2, baseY - h * 0.16, tw, h * 0.16);
+      bx.fillStyle = "rgb(20,42,30)";
+      for (let k = 0; k < 3; k++) {
+        const ty = baseY - h * 0.16 - k * h * 0.24;
+        const w = h * (0.46 - k * 0.12);
+        bx.beginPath();
+        bx.moveTo(x, ty - h * 0.34);
+        bx.lineTo(x - w, ty);
+        bx.lineTo(x + w, ty);
+        bx.closePath(); bx.fill();
+      }
+    }
+
+    function draw(now) {
+      const ts = (now - t0) / 1000;
+      const m = metrics();
+      const fTop = m.sy / m.sh;                 // true world fraction (top of viewport)
+      const target = m.sy / m.docH;
+      p += (target - p) * (reduceMotion ? 1 : 0.12);
+      mouse.x += (mouse.tx - mouse.x) * 0.06;
+      mouse.y += (mouse.ty - mouse.y) * 0.06;
+      const tt = reduceMotion ? 0 : ts;
+      const mx = mouse.x;
+
+      // ---- 1. sky gradient (per buffer row, tied to true scroll) ----
+      for (let y = 0; y < BH; y++) {
+        const f = fTop + (y * scale) / m.sh;
+        const c = skyColor(f);
+        bx.fillStyle = "rgb(" + c[0] + "," + c[1] + "," + c[2] + ")";
+        bx.fillRect(0, y, BW, 1);
+      }
+
+      // ---- 2. nebulae (space) ----
+      const spaceA = clamp01(1 - (p - 0.20) / 0.12);
+      if (spaceA > 0.01) {
+        for (const n of nebulae) {
+          const ny = ((n.y - m.sy * 0.03) % (BH * 1.4) + BH * 1.4) % (BH * 1.4) - BH * 0.2;
+          const g = bx.createRadialGradient(n.x + mx * 6, ny, 0, n.x + mx * 6, ny, n.r);
+          g.addColorStop(0, rgb(n.c, n.a * spaceA));
+          g.addColorStop(1, rgb(n.c, 0));
+          bx.fillStyle = g;
+          bx.fillRect(n.x + mx * 6 - n.r, ny - n.r, n.r * 2, n.r * 2);
+        }
+      }
+
+      // ---- 3. stars (space) ----
+      const starA = clamp01(1 - (p - 0.22) / 0.11);
+      if (starA > 0.01) {
+        for (const s of stars) {
+          const sy2 = ((s.y - m.sy * 0.05 * s.z) % BH + BH) % BH;
+          const sx = s.x + mx * 5 * s.z;
+          const tw = 0.4 + Math.sin(tt * s.tw + s.ph) * 0.35 + s.z * 0.25;
+          const a = clamp01(tw) * starA;
+          const col = s.hue === "warm" ? [233, 201, 135] : s.hue === "cool" ? [127, 214, 232] : [244, 241, 255];
+          bx.fillStyle = rgb(col, a);
+          const r = s.z > 0.8 ? 2 : 1;
+          bx.fillRect(sx | 0, sy2 | 0, r, r);
+        }
+      }
+
+      // ---- 4. flat celestial bodies (supplied pixel art, drift by) ----
+      // distant ringed planet, high up
+      const planA = band(p, 0.0, 0.22, 0.0, 0.06);
+      if (planA > 0.01 && ready(planetImg)) {
+        const s = BH * 0.26;
+        const pxp = BW * 0.2 + mx * 4;
+        const pyp = fy(0.06, 2.2);
+        bx.globalAlpha = planA;
+        bx.save();
+        bx.translate(pxp, pyp);
+        bx.rotate(-0.35); // tilt the planet
+        bx.drawImage(planetImg, -s / 2, -s / 2, s, s);
+        bx.restore();
+        bx.globalAlpha = 1;
+      }
+      // the moon — smaller than the planet
+      const moonA = band(p, 0.0, 0.30, 0.0, 0.06);
+      if (moonA > 0.01 && ready(moonImg)) {
+        const s = BH * 0.14;
+        const cxm = BW * 0.74 + mx * 6;
+        const cym = fy(0.15, 3.0);
+        bx.globalAlpha = moonA;
+        bx.drawImage(moonImg, cxm - s / 2, cym - s / 2, s, s);
+        bx.globalAlpha = 1;
+      }
+
+      // ---- 6. sun ----
+      const sunA = band(p, 0.5, 0.74, 0.06, 0.05);
+      if (sunA > 0.01) {
+        const sxp = BW * 0.74 + mx * 4;
+        const syp = fy(0.6, 2.4) - BH * 0.1;
+        const sg = bx.createRadialGradient(sxp, syp, 0, sxp, syp, BH * 0.5);
+        sg.addColorStop(0, rgb([255, 244, 214], 0.9 * sunA));
+        sg.addColorStop(0.18, rgb([255, 232, 180], 0.5 * sunA));
+        sg.addColorStop(1, rgb([255, 220, 160], 0));
+        bx.fillStyle = sg;
+        bx.fillRect(sxp - BH * 0.5, syp - BH * 0.5, BH, BH);
+        bx.fillStyle = rgb([255, 248, 226], 0.95 * sunA);
+        bx.beginPath(); bx.arc(sxp, syp, BH * 0.05, 0, 6.2832); bx.fill();
+      }
+
+      // ---- 7. clouds (supplied pixel sprites) ----
+      for (const c of clouds) {
+        const ca = band(p, c.frac - 0.12, c.frac + 0.12, 0.06, 0.06);
+        if (ca < 0.01) continue;
+        const img = cloudImgs[c.img];
+        if (!ready(img)) continue;
+        const cw = c.w * BW;
+        let cxp = (((c.x + (reduceMotion ? 0 : tt * c.spd)) % 1.4) + 1.4) % 1.4;
+        cxp = cxp * BW - BW * 0.2 + mx * 10 * c.depth;
+        const cyp = fy(c.frac, 4.5);
+        bx.globalAlpha = ca * (0.55 + c.depth * 0.45); // distant clouds fainter
+        bx.drawImage(img, cxp - cw / 2, cyp - cw / 2, cw, cw);
+        bx.globalAlpha = 1;
+      }
+
+      // ---- 8. birds ----
+      for (const b of birds) {
+        const ba = band(p, b.frac - 0.06, b.frac + 0.06, 0.03, 0.03);
+        if (ba < 0.01) continue;
+        const bxp = ((((b.x + (reduceMotion ? 0 : tt * b.spd)) % 1.2) + 1.2) % 1.2) * BW - BW * 0.1;
+        const byp = fy(b.frac, 4) + Math.sin(tt + b.ph) * BH * 0.02;
+        const s = b.s * (scale / 4 + 0.6);
+        const flap = Math.sin(tt * 6 + b.ph) * s;
+        bx.strokeStyle = rgb([20, 26, 40], 0.5 * ba);
+        bx.lineWidth = 1;
+        bx.beginPath();
+        bx.moveTo(bxp - 2 * s, byp + flap); bx.lineTo(bxp, byp);
+        bx.lineTo(bxp + 2 * s, byp + flap); bx.stroke();
+      }
+
+      // ---- 9. parallax mountain ridges (pointy, snow caps, trees) ----
+      const ra = band(p, 0.62, 0.84, 0.06, 0.04);
+      if (ra > 0.01) {
+        for (let ri = 0; ri < RIDGES.length; ri++) {
+          const rg = RIDGES[ri];
+          const yb = fy(rg.frac, rg.travel) + BH * rg.base;
+          const ah = rg.amp * BH;
+          const H = sampleRidge(rg.nodes);
+
+          // silhouette path (reused for fill + snow clip)
+          const peak = new Path2D();
+          peak.moveTo(0, BH + 2);
+          for (let x = 0; x <= BW; x += 1) peak.lineTo(x, yb - H[x] * ah);
+          peak.lineTo(BW, BH + 2); peak.closePath();
+          bx.fillStyle = rgb(rg.col, ra);
+          bx.fill(peak);
+
+          // snow caps — white fill clipped to the peaks, above a wavy snow line
+          if (rg.snow) {
+            const snowY = yb - ah * 0.46;
+            bx.save();
+            bx.clip(peak);
+            bx.beginPath();
+            bx.moveTo(0, yb - ah * 1.2); bx.lineTo(BW, yb - ah * 1.2);
+            for (let x = BW; x >= 0; x -= 2) bx.lineTo(x, snowY + Math.sin(x * 0.25 + ri) * (ah * 0.05));
+            bx.closePath();
+            bx.fillStyle = rgb([236, 242, 252], ra);
+            bx.fill();
+            bx.restore();
+          }
+
+          // evergreens along the near (forested) ridge
+          if (rg.trees) {
+            const step = Math.max(6, BW / 30);
+            const th = BH * 0.032;
+            bx.globalAlpha = ra;
+            for (let x = step * 0.5; x < BW; x += step) {
+              const jx = x + Math.sin(x * 1.7) * step * 0.3;
+              const topY = yb - H[Math.max(0, Math.min(BW, Math.round(jx)))] * ah;
+              tree(jx, topY + 1, th * (0.8 + (Math.sin(x * 3.1) * 0.5 + 0.5) * 0.5));
+            }
+            bx.globalAlpha = 1;
+          }
+        }
+      }
+
+      // ---- 10. sea surface line + glints ----
+      const surfA = band(p, 0.76, 0.84, 0.03, 0.03);
+      if (surfA > 0.01) {
+        const sl = fy(0.8, 6);
+        bx.fillStyle = rgb([180, 224, 232], 0.5 * surfA);
+        for (let x = 0; x < BW; x += 2) {
+          const yy = sl + Math.sin(x * 0.2 + tt * 2) * 1.5;
+          bx.fillRect(x, yy | 0, 2, 1);
+        }
+        // sun glitter column
+        const gxp = BW * 0.74;
+        bx.fillStyle = rgb([255, 244, 214], 0.4 * surfA);
+        for (let x = gxp - BW * 0.06; x < gxp + BW * 0.06; x += 2) {
+          if (Math.random() < 0.5) bx.fillRect(x, (sl + Math.sin(x + tt * 3) * 2) | 0, 2, 1);
+        }
+      }
+
+      // ---- 11. underwater ----
+      const waterA = band(p, 0.81, 1.0, 0.04, 0.0);
+      if (waterA > 0.01) {
+        // god rays
+        const rayTop = fy(0.8, 6);
+        bx.save();
+        bx.globalCompositeOperation = "lighter";
+        for (let i = 0; i < 4; i++) {
+          const rx = BW * (0.2 + i * 0.2) + Math.sin(tt * 0.3 + i) * BW * 0.04;
+          const w = BW * 0.05;
+          const rg2 = bx.createLinearGradient(rx, rayTop, rx + BW * 0.12, BH);
+          rg2.addColorStop(0, rgb([150, 220, 230], 0.10 * waterA));
+          rg2.addColorStop(1, rgb([150, 220, 230], 0));
+          bx.fillStyle = rg2;
+          bx.beginPath();
+          bx.moveTo(rx, rayTop); bx.lineTo(rx + w, rayTop);
+          bx.lineTo(rx + BW * 0.16 + w, BH); bx.lineTo(rx + BW * 0.16, BH);
+          bx.closePath(); bx.fill();
+        }
+        bx.restore();
+
+        // fish
+        for (const f of fish) {
+          const fa = band(p, f.frac - 0.1, f.frac + 0.1, 0.05, 0.05) * waterA;
+          if (fa < 0.01) continue;
+          let fx = (((f.x + (reduceMotion ? 0 : tt * f.spd * f.dir)) % 1.2) + 1.2) % 1.2;
+          fx = fx * BW - BW * 0.1;
+          const fyp = fy(f.frac, 7) + Math.sin(tt * 2 + f.wob) * BH * 0.02;
+          const s = f.s * (scale / 4 + 0.7);
+          bx.fillStyle = rgb(f.c, 0.85 * fa);
+          ellipse(fx, fyp, 3 * s, 1.6 * s);            // body
+          bx.beginPath();                               // tail
+          bx.moveTo(fx - f.dir * 3 * s, fyp);
+          bx.lineTo(fx - f.dir * 5 * s, fyp - 1.6 * s);
+          bx.lineTo(fx - f.dir * 5 * s, fyp + 1.6 * s);
+          bx.closePath(); bx.fill();
+        }
+
+        // bubbles
+        bx.fillStyle = rgb([200, 234, 240], 0.4 * waterA);
+        for (const b of bubbles) {
+          if (!reduceMotion) b.y -= b.spd * 0.016;
+          if (b.y < -4) { b.y = BH + rand(0, 20); b.x = rand(0, BW); }
+          const bxp = b.x + Math.sin((b.y + tt * 20) * 0.05) * 3;
+          bx.fillRect(bxp | 0, b.y | 0, Math.max(1, b.r | 0), Math.max(1, b.r | 0));
+        }
+
+        // sea floor + kelp (very bottom)
+        const floorA = band(p, 0.93, 1.0, 0.04, 0.0);
+        if (floorA > 0.01) {
+          const fl = fy(0.99, 7);
+          bx.fillStyle = rgb([10, 30, 36], floorA);
+          bx.beginPath(); bx.moveTo(0, BH);
+          for (let x = 0; x <= BW; x += 3) {
+            const yy = fl + Math.sin(x * 0.05) * BH * 0.03;
+            bx.lineTo(x, yy);
+          }
+          bx.lineTo(BW, BH); bx.closePath(); bx.fill();
+          bx.strokeStyle = rgb([26, 86, 70], 0.7 * floorA);
+          bx.lineWidth = 1.5;
+          for (let i = 0; i < 9; i++) {
+            const kx = (i + 0.5) * (BW / 9);
+            bx.beginPath();
+            for (let s = 0; s <= 1; s += 0.1) {
+              const ky = fl - s * BH * 0.22;
+              const kxx = kx + Math.sin(s * 5 + tt + i) * 4 * s;
+              if (s === 0) bx.moveTo(kxx, ky); else bx.lineTo(kxx, ky);
+            }
+            bx.stroke();
+          }
+        }
+      }
+
+      // ---- 12. subtle vignette ----
+      const vg = bx.createRadialGradient(BW / 2, BH / 2, BH * 0.4, BW / 2, BH / 2, BH * 0.85);
+      vg.addColorStop(0, "rgba(0,0,0,0)");
+      vg.addColorStop(1, "rgba(0,0,0,0.28)");
+      bx.fillStyle = vg; bx.fillRect(0, 0, BW, BH);
+
+      // ---- blit low-res buffer → screen (pixelated) ----
+      ctx.clearRect(0, 0, W, H);
+      ctx.drawImage(buf, 0, 0, BW, BH, 0, 0, W, H);
+
+      if (reduceMotion) return;
+      requestAnimationFrame(draw);
+    }
+
+    window.addEventListener("resize", () => { resize(); if (reduceMotion) requestAnimationFrame(draw); }, { passive: true });
+    window.addEventListener("mousemove", (e) => {
+      mouse.tx = (e.clientX / innerWidth - 0.5);
+      mouse.ty = (e.clientY / innerHeight - 0.5);
+    }, { passive: true });
+    if (reduceMotion) window.addEventListener("scroll", () => requestAnimationFrame(draw), { passive: true });
+
+    resize();
+    p = (function () { const m = metrics(); return m.sy / m.docH; })();
+    requestAnimationFrame(draw);
+  })();
 })();
