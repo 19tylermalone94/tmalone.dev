@@ -12,6 +12,7 @@
     const ctx = canvas.getContext("2d");
     let w, h, dpr, stars = [], shootTimer = 0, shoot = null;
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+    let lastWidth = 0;
 
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -19,6 +20,11 @@
       h = canvas.height = Math.floor(innerHeight * dpr);
       canvas.style.width = innerWidth + "px";
       canvas.style.height = innerHeight + "px";
+      // mobile browsers fire "resize" while scrolling as the URL bar hides/shows,
+      // changing only innerHeight — re-seeding then would make every star jump
+      // to a new random spot mid-scroll. Only reseed on real width changes.
+      if (innerWidth === lastWidth) return;
+      lastWidth = innerWidth;
       const count = Math.min(360, Math.floor((innerWidth * innerHeight) / 5200));
       stars = [];
       for (let i = 0; i < count; i++) {
@@ -914,6 +920,7 @@
     let scale = SCALE;
     let W, H, BW, BH;
     let stars = [], nebulae = [], clouds = [], fish = [], bubbles = [], birds = [], sharks = [], gore = [], planes = [], flora = [], boats = [], whales = [];
+    let lastWidth = 0;
     let p = 0;                 // eased scroll fraction
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
     let t0 = performance.now();
@@ -991,6 +998,12 @@
       BH = buf.height = Math.max(2, Math.ceil(innerHeight / scale));
       ctx.imageSmoothingEnabled = false;
       bx.imageSmoothingEnabled = false;
+      // mobile browsers fire "resize" while scrolling as the URL bar hides/shows,
+      // changing only innerHeight — re-seeding then would make every cloud, fish,
+      // star etc. jump to a new random spot mid-scroll. Only reseed on real
+      // width changes (e.g. orientation change or a real layout resize).
+      if (innerWidth === lastWidth) return;
+      lastWidth = innerWidth;
       seed();
     }
 
