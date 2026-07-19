@@ -677,7 +677,7 @@ main, .nav, .foot { position: relative; z-index: 2; }
 .gpa__num {
   font-family: var(--f-display); font-style: italic; font-weight: 400;
   font-size: clamp(3rem, 7vw, 4.6rem); line-height: 1;
-  background: linear-gradient(92deg, #f5dca7, #f0a7c2);
+  background: linear-gradient(92deg, #ffe9b8, #ffc2d6);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .gpa__den { font-family: var(--f-mono); font-size: .8rem; letter-spacing: .1em; color: var(--text-dim); text-transform: uppercase; }
