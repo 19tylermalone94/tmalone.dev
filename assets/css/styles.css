@@ -625,6 +625,8 @@ main, .nav, .foot { position: relative; z-index: 2; }
   font-size: clamp(1.7rem, 3.2vw, 2.5rem); line-height: 1.08;
   color: var(--star); margin-bottom: .35rem;
 }
+.entry__org a { text-decoration: underline; text-decoration-color: var(--gold-soft); text-underline-offset: .18em; transition: color .2s; }
+.entry__org a:hover { color: var(--gold); }
 .entry__role {
   font-family: var(--f-mono); font-size: .82rem; letter-spacing: .03em;
   color: var(--gold-soft); margin-bottom: 1.5rem;
