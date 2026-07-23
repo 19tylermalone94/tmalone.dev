@@ -188,8 +188,11 @@
      rocket lives in world space and the camera chases it with a
      soft tether. Vertically the camera drives the page scroll
      (hard top/bottom bounds); horizontally the page content wraps
-     seamlessly via a translated clone. Hold click/touch to steer
-     and shoot toward the pointer; WASD/arrows still work.
+     around a loop of empty space three page-widths wide, so the
+     content face slides fully off-screen before it reappears on
+     the other side — like flying around a prism with one content
+     face and three blank ones. Hold click/touch to steer and
+     shoot toward the pointer; WASD/arrows still work.
      ============================================================ */
   (function flight() {
     const btn = document.getElementById("flyBtn");
@@ -235,7 +238,7 @@
     let raf = 0, last = 0, sp = 0;
     let rx = 0, ry = 0, vx = 0, vy = 0, rot = 0, thrust = 0; // rocket, world space
     let camX = 0, camY = 0;        // camera centre, world space
-    let contentW = 0, worldW = 0;  // page width / wrap period (2 pages)
+    let contentW = 0, worldW = 0;  // page width / wrap period (content + 3 blank page-widths)
     const aim = { on: false, boost: false, x: 0, y: 0 };  // pointer steering target (screen)
     let gdpr = 1, gw = 0, gh = 0;
     const keys = { up: false, down: false, left: false, right: false, boost: false, fire: false };
@@ -287,42 +290,23 @@
     function gx(x) { return innerWidth / 2 + wd(x - camX); }
     function pageH() { return document.documentElement.scrollHeight; }
 
-    /* ---- horizontal page wrap: translate the content, clone covers the seam ---- */
+    /* ---- horizontal page wrap: translate the content around a loop that's
+       mostly empty space, so the content face slides fully off-screen
+       before the next lap brings it back ---- */
     const pageWorld = document.getElementById("pageWorld");
-    let pageClone = null, srcCanvases = [], cloneCanvases = [];
-    function buildClone() {
-      if (!pageWorld || pageClone) return;
-      srcCanvases = Array.from(pageWorld.querySelectorAll("canvas"));
-      pageClone = pageWorld.cloneNode(true);
-      pageClone.removeAttribute("id");
-      pageClone.className = "page-world--clone";
-      pageClone.setAttribute("aria-hidden", "true");
-      pageClone.setAttribute("inert", "");
-      pageClone.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
-      pageWorld.appendChild(pageClone);
-      cloneCanvases = Array.from(pageClone.querySelectorAll("canvas"));
-    }
-    function dropClone() {
-      if (pageClone) { pageClone.remove(); pageClone = null; }
-      srcCanvases = []; cloneCanvases = [];
+    function resetWorld() {
       if (pageWorld) pageWorld.style.transform = "";
     }
     function placeWorld() {
       if (!pageWorld) return;
-      const off = ((innerWidth / 2 - camX) % contentW + contentW) % contentW;
+      // centre the wrap point in the middle of the blank stretch (half a
+      // world away from the content face) so the modulo's instant jump
+      // always lands off-screen instead of popping visible content
+      const half = worldW / 2;
+      const raw = innerWidth / 2 - camX;
+      const off = (((raw + half) % worldW + worldW) % worldW) - half;
       // whole pixels — fractional offsets make sliding text shimmer
       pageWorld.style.transform = `translate3d(${Math.round(off)}px,0,0)`;
-      // keep clone canvases (hero starfield) mirroring the live ones — only
-      // needed while the hero is anywhere near the viewport
-      if (window.scrollY > innerHeight * 1.5) return;
-      for (let i = 0; i < srcCanvases.length; i++) {
-        const s = srcCanvases[i], c = cloneCanvases[i];
-        if (!s || !c || !s.width) continue;
-        if (c.width !== s.width || c.height !== s.height) { c.width = s.width; c.height = s.height; }
-        const cx2 = c.getContext("2d");
-        cx2.clearRect(0, 0, c.width, c.height);
-        cx2.drawImage(s, 0, 0);
-      }
     }
 
     /* ---- tiny WebAudio blips (created on first gesture) ---- */
@@ -748,7 +732,7 @@
 
     function sizeGame() {
       contentW = document.documentElement.clientWidth;
-      worldW = contentW * 2;   // wrap period: two page-widths of world
+      worldW = contentW * 4;   // wrap period: content + three blank page-widths
       if (!gcanvas) return;
       gdpr = Math.min(window.devicePixelRatio || 1, 2);
       gw = innerWidth; gh = innerHeight;
@@ -785,9 +769,9 @@
       active = true;
       sizeGame();
       resetGame();
-      // reveal everything so the wrapped clone matches the live content
+      // reveal everything so sections are already visible when the wrap
+      // slides them into view
       document.querySelectorAll(".reveal, .reveal-up").forEach((el) => el.classList.add("in"));
-      buildClone();
       placeWorld();
       try { audio(); if (actx && actx.state === "suspended") actx.resume(); } catch (e) { /* ignore */ }
       if (gcanvas) gcanvas.hidden = false;
@@ -807,7 +791,7 @@
       aim.on = false; aim.boost = false;
       rocket.classList.remove("is-boosting");
       rocket.hidden = true;
-      dropClone();
+      resetWorld();
       if (gcanvas) { gcanvas.hidden = true; if (gctx) { gctx.setTransform(1, 0, 0, 1, 0, 0); gctx.clearRect(0, 0, gcanvas.width, gcanvas.height); } }
       if (hud) hud.hidden = true;
       if (gameover) { gameover.hidden = true; gameover.classList.remove("in"); }
