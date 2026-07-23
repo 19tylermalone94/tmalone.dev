@@ -40,7 +40,7 @@
     <a href="#contact">Contact</a>
   </nav>
   <div class="nav__actions">
-    <button type="button" class="nav__fly" id="flyBtn" aria-pressed="false" aria-label="Fly a rocket and fight aliens" title="Fly &amp; fight: WASD/arrows to move, click or Space to shoot, Shift to boost">
+    <button type="button" class="nav__fly" id="flyBtn" aria-pressed="false" aria-label="Fly a rocket and fight aliens" title="Fly &amp; fight: hold click/touch to steer &amp; shoot (WASD works too), double-click &amp; hold to boost">
       <span class="nav__fly-ico" aria-hidden="true">🚀</span>
     </button>
     <a href="#contact" class="nav__cta">Available</a>
@@ -79,13 +79,6 @@
 </div>
 
 
-<div class="dpad" id="dpad" hidden aria-hidden="true">
-  <button class="dpad__btn dpad__up"    data-dir="up">▲</button>
-  <button class="dpad__btn dpad__left"  data-dir="left">◀</button>
-  <button class="dpad__btn dpad__right" data-dir="right">▶</button>
-  <button class="dpad__btn dpad__down"  data-dir="down">▼</button>
-</div>
-
 <!-- ============ GAME (combat layer · HUD · achievements) ============ -->
 <canvas class="game-layer" id="gameLayer" hidden aria-hidden="true"></canvas>
 <div class="hit-flash" id="hitFlash" aria-hidden="true"></div>
@@ -117,6 +110,9 @@
   </div>
 </div>
 
+<!-- pageWorld wraps everything that scrolls — flight mode translates it
+     horizontally (with a clone covering the seam) for left/right wrapping -->
+<div class="page-world" id="pageWorld">
 <main>
 
 <!-- ============ HERO ============ -->
@@ -594,6 +590,7 @@
   <span class="foot__name">Tyler Malone</span>
   <a href="#top" class="foot__top">Back to top ↑</a>
 </footer>
+</div>
 
 <script src="assets/js/main.js"></script>
 </body>
