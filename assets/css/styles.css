@@ -39,7 +39,8 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; background: #000; }
-html.flying { scroll-behavior: auto; }
+html.flying { scroll-behavior: auto; touch-action: none; overscroll-behavior: none; }
+html.flying body { user-select: none; -webkit-user-select: none; cursor: crosshair; }
 
 body {
   font-family: var(--f-body);
@@ -70,6 +71,17 @@ img { display: block; max-width: 100%; }
 }
 
 main, .nav, .foot { position: relative; z-index: 2; }
+
+/* flight mode wraps the page horizontally: .page-world gets a translateX and
+   its clone sits one page-width to the left to cover the seam */
+.page-world { position: relative; z-index: 2; }
+/* while flying the page is scenery: no hover effects firing as it slides
+   under the cursor, no links swallowing steering input */
+html.flying .page-world { will-change: transform; pointer-events: none; }
+.page-world--clone {
+  position: absolute; top: 0; left: -100%; width: 100%;
+  pointer-events: none;
+}
 
 /* scroll progress — thin filament across the top */
 .scroll-progress {
@@ -186,30 +198,6 @@ main, .nav, .foot { position: relative; z-index: 2; }
 @keyframes flameFlicker {
   0%   { transform: translateX(-50%) scaleY(1) scaleX(1); }
   100% { transform: translateX(-52%) scaleY(0.86) scaleX(1.12); }
-}
-
-/* on-screen d-pad (touch) */
-.dpad {
-  position: fixed; right: 1.1rem; bottom: 1.4rem; z-index: 66;
-  display: none;
-  grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px);
-  gap: 6px; touch-action: none;
-}
-.dpad[hidden] { display: none !important; }
-.dpad__btn {
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; color: var(--star); cursor: pointer;
-  background: rgba(7,10,22,0.7); backdrop-filter: blur(10px);
-  border: 1px solid var(--line); border-radius: 12px;
-  -webkit-user-select: none; user-select: none;
-}
-.dpad__btn:active { background: rgba(127,214,232,0.25); border-color: var(--cyan); }
-.dpad__up    { grid-column: 2; grid-row: 1; }
-.dpad__left  { grid-column: 1; grid-row: 2; }
-.dpad__right { grid-column: 3; grid-row: 2; }
-.dpad__down  { grid-column: 2; grid-row: 3; }
-@media (hover: none) and (pointer: coarse) {
-  .dpad.is-on { display: grid; }
 }
 
 /* ============================================================

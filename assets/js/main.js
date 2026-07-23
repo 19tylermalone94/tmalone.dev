@@ -155,6 +155,9 @@
   if (parallaxEls.length && !reduceMotion) {
     let ticking = false;
     const update = () => {
+      // frozen during flight mode — the horizontal-wrap clone copies these
+      // transforms once, so the live side must not drift away from it
+      if (document.documentElement.classList.contains("flying")) { ticking = false; return; }
       const vh = innerHeight;
       for (const el of parallaxEls) {
         const speed = parseFloat(el.getAttribute("data-parallax")) || 0.1;
@@ -181,17 +184,17 @@
   }
 
   /* ============================================================
-     Flight mode → COSMIC SKIRMISH — drive a rocket with WASD /
-     arrows (flying past the comfort band scrolls the page), shoot
-     with click or Space, and survive waves of alien saucers that
-     chase and fire back. Track survival time, kills, distance and
-     unlock achievements along the way.
+     Flight mode → COSMIC SKIRMISH — slither-style controls: the
+     rocket lives in world space and the camera chases it with a
+     soft tether. Vertically the camera drives the page scroll
+     (hard top/bottom bounds); horizontally the page content wraps
+     seamlessly via a translated clone. Hold click/touch to steer
+     and shoot toward the pointer; WASD/arrows still work.
      ============================================================ */
   (function flight() {
     const btn = document.getElementById("flyBtn");
     const rocket = document.getElementById("rocket");
     const flame = rocket && rocket.querySelector(".rocket__flame");
-    const dpad = document.getElementById("dpad");
     if (!btn || !rocket || !flame) return;
 
     // game DOM
@@ -214,9 +217,10 @@
     const ACCEL = 2200;     // px/s^2 of thrust
     const DAMP = 2.6;       // velocity damping per second
     const MAXV = 1100;      // px/s speed cap
-    const MARGIN = 70;      // how close the rocket gets to viewport edges
+    const MARGIN = 70;      // hard top/bottom world margin
     const BOOST_ACCEL = 2;  // thrust multiplier while Shift is held
     const BOOST_MAXV = 2100; // raised speed cap while boosting
+    const FOLLOW = 9;       // camera tether stiffness (1/s) — the "elastic"
 
     // combat tuning
     const MAXHP = 100;
@@ -224,10 +228,15 @@
     const BULLET_V = 980;      // player bullet speed
     const FOE_BULLET_V = 360;  // alien bullet speed
     const isTouch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    const RSCALE = isTouch ? 0.62 : 1;  // smaller rocket & foes on cramped screens
+    const PR = 14 * RSCALE;             // player hit radius
 
     let active = false;
     let raf = 0, last = 0, sp = 0;
-    let px = 0, py = 0, vx = 0, vy = 0, rot = 0, thrust = 0;
+    let rx = 0, ry = 0, vx = 0, vy = 0, rot = 0, thrust = 0; // rocket, world space
+    let camX = 0, camY = 0;        // camera centre, world space
+    let contentW = 0, worldW = 0;  // page width / wrap period (2 pages)
+    const aim = { on: false, boost: false, x: 0, y: 0 };  // pointer steering target (screen)
     let gdpr = 1, gw = 0, gh = 0;
     const keys = { up: false, down: false, left: false, right: false, boost: false, fire: false };
 
@@ -272,6 +281,50 @@
       return a + d * t;
     }
 
+    // shortest wrapped horizontal delta, and world-x → screen-x
+    function wd(d) { return ((d % worldW) + worldW * 1.5) % worldW - worldW / 2; }
+    function wmod(x) { return ((x % worldW) + worldW) % worldW; }
+    function gx(x) { return innerWidth / 2 + wd(x - camX); }
+    function pageH() { return document.documentElement.scrollHeight; }
+
+    /* ---- horizontal page wrap: translate the content, clone covers the seam ---- */
+    const pageWorld = document.getElementById("pageWorld");
+    let pageClone = null, srcCanvases = [], cloneCanvases = [];
+    function buildClone() {
+      if (!pageWorld || pageClone) return;
+      srcCanvases = Array.from(pageWorld.querySelectorAll("canvas"));
+      pageClone = pageWorld.cloneNode(true);
+      pageClone.removeAttribute("id");
+      pageClone.className = "page-world--clone";
+      pageClone.setAttribute("aria-hidden", "true");
+      pageClone.setAttribute("inert", "");
+      pageClone.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+      pageWorld.appendChild(pageClone);
+      cloneCanvases = Array.from(pageClone.querySelectorAll("canvas"));
+    }
+    function dropClone() {
+      if (pageClone) { pageClone.remove(); pageClone = null; }
+      srcCanvases = []; cloneCanvases = [];
+      if (pageWorld) pageWorld.style.transform = "";
+    }
+    function placeWorld() {
+      if (!pageWorld) return;
+      const off = ((innerWidth / 2 - camX) % contentW + contentW) % contentW;
+      // whole pixels — fractional offsets make sliding text shimmer
+      pageWorld.style.transform = `translate3d(${Math.round(off)}px,0,0)`;
+      // keep clone canvases (hero starfield) mirroring the live ones — only
+      // needed while the hero is anywhere near the viewport
+      if (window.scrollY > innerHeight * 1.5) return;
+      for (let i = 0; i < srcCanvases.length; i++) {
+        const s = srcCanvases[i], c = cloneCanvases[i];
+        if (!s || !c || !s.width) continue;
+        if (c.width !== s.width || c.height !== s.height) { c.width = s.width; c.height = s.height; }
+        const cx2 = c.getContext("2d");
+        cx2.clearRect(0, 0, c.width, c.height);
+        cx2.drawImage(s, 0, 0);
+      }
+    }
+
     /* ---- tiny WebAudio blips (created on first gesture) ---- */
     let actx = null;
     function audio() {
@@ -313,15 +366,18 @@
 
     /* ---- spawning & firing ---- */
     function spawnFoe() {
-      const m = 60, edge = Math.floor(Math.random() * 4), sc = window.scrollY;
+      const m = 60, edge = Math.floor(Math.random() * 4);
+      const hw = gw / 2, hh = gh / 2;
       let x, y;
-      // y is stored in world (page) space, so spawn around the current view
-      if (edge === 0) { x = Math.random() * gw; y = sc - m; }
-      else if (edge === 1) { x = gw + m; y = sc + Math.random() * gh; }
-      else if (edge === 2) { x = Math.random() * gw; y = sc + gh + m; }
-      else { x = -m; y = sc + Math.random() * gh; }
+      // spawn just outside the camera's view, in world space
+      if (edge === 0) { x = camX + (Math.random() - 0.5) * gw; y = camY - hh - m; }
+      else if (edge === 2) { x = camX + (Math.random() - 0.5) * gw; y = camY + hh + m; }
+      else { x = camX + (edge === 1 ? hw + m : -hw - m); y = camY + (Math.random() - 0.5) * gh; }
+      // top/bottom of the page are hard bounds — flip the edge if outside
+      if (y < 0) y = camY + hh + m;
+      else if (y > pageH()) y = camY - hh - m;
       const tough = Math.random() < Math.min(0.4, gTime * 0.006);
-      foes.push({ x, y, vx: 0, vy: 0, r: tough ? 21 : 15, hp: tough ? 3 : 1, hue: tough ? "gold" : "rose", shoot: 0.8 + Math.random() * 1.4, wob: Math.random() * 6.2832 });
+      foes.push({ x: wmod(x), y, vx: 0, vy: 0, r: (tough ? 21 : 15) * RSCALE, hp: tough ? 3 : 1, hue: tough ? "gold" : "rose", shoot: 0.8 + Math.random() * 1.4, wob: Math.random() * 6.2832 });
     }
 
     function tryShoot() {
@@ -330,7 +386,7 @@
       shots++;
       const rad = rot * Math.PI / 180;
       const dx = Math.sin(rad), dy = -Math.cos(rad);
-      pBullets.push({ x: px + dx * 28, y: (py + window.scrollY) + dy * 28, vx: dx * BULLET_V + vx * 0.3, vy: dy * BULLET_V + vy * 0.3, life: 1.1 });
+      pBullets.push({ x: wmod(rx + dx * 28 * RSCALE), y: ry + dy * 28 * RSCALE, vx: dx * BULLET_V + vx * 0.3, vy: dy * BULLET_V + vy * 0.3, life: 1.1 });
       vx -= dx * 26; vy -= dy * 26;            // gentle recoil
       beep(660, 0.07, "square", 0.025, 240);
     }
@@ -349,8 +405,7 @@
     function die() {
       if (dead) return;
       dead = true; alive = false;
-      const wy = py + window.scrollY;
-      explode(px, wy, "gold", 40); explode(px, wy, "rose", 26); explode(px, wy, "white", 16);
+      explode(rx, ry, "gold", 40); explode(rx, ry, "rose", 26); explode(rx, ry, "white", 16);
       shake = 18;
       rocket.hidden = true;
       keys.up = keys.down = keys.left = keys.right = keys.boost = keys.fire = false;
@@ -450,7 +505,7 @@
         noHit += dt;
         if (sp > topSpeed) topSpeed = sp;
         if (!reachedBottom && window.scrollY + innerHeight >= document.documentElement.scrollHeight - 3) reachedBottom = true;
-        if (keys.fire || isTouch) tryShoot();
+        if (keys.fire || aim.on || isTouch) tryShoot();
 
         spawnT -= dt;
         const maxFoes = Math.min(11, 3 + Math.floor(gTime / 11));
@@ -459,20 +514,20 @@
       }
       fireT -= dt;
 
-      // player position in world (page) space — foes/bullets live in world space
+      // everything lives in world space: x wraps at worldW, y is page space
       const sc = window.scrollY;
-      const pwx = px, pwy = py + sc;
+      const pwx = rx, pwy = ry;
 
       const foeSpeed = Math.min(330, 150 + gTime * 2.4);
       for (let i = foes.length - 1; i >= 0; i--) {
         const f = foes[i];
         f.wob += dt * 2.2;
-        const dx = pwx - f.x, dy = pwy - f.y, d = Math.hypot(dx, dy) || 1;
+        const dx = wd(pwx - f.x), dy = pwy - f.y, d = Math.hypot(dx, dy) || 1;
         f.vx += (dx / d) * 620 * dt + Math.cos(f.wob) * 40 * dt;
         f.vy += (dy / d) * 620 * dt + Math.sin(f.wob) * 40 * dt;
         const fs = Math.hypot(f.vx, f.vy);
         if (fs > foeSpeed) { f.vx = f.vx / fs * foeSpeed; f.vy = f.vy / fs * foeSpeed; }
-        f.x += f.vx * dt; f.y += f.vy * dt;
+        f.x = wmod(f.x + f.vx * dt); f.y += f.vy * dt;
 
         f.shoot -= dt;
         if (alive && d < 1100 && f.shoot <= 0) {
@@ -482,7 +537,7 @@
           beep(170, 0.12, "sawtooth", 0.016, 90);
         }
 
-        if (alive && d < f.r + 14) {              // rammed the player
+        if (alive && d < f.r + PR) {              // rammed the player
           explode(f.x, f.y, f.hue, 18);
           foes.splice(i, 1); kills++;
           hitPlayer(22);
@@ -493,12 +548,12 @@
       // player bullets
       for (let i = pBullets.length - 1; i >= 0; i--) {
         const b = pBullets[i];
-        b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
-        const by = b.y - sc;
-        let gone = b.life <= 0 || b.x < -30 || b.x > gw + 30 || by < -30 || by > gh + 30;
+        b.x = wmod(b.x + b.vx * dt); b.y += b.vy * dt; b.life -= dt;
+        const by = b.y - sc, bx = wd(b.x - camX);
+        let gone = b.life <= 0 || bx < -gw / 2 - 30 || bx > gw / 2 + 30 || by < -30 || by > gh + 30;
         for (let j = foes.length - 1; j >= 0 && !gone; j--) {
           const f = foes[j];
-          if (Math.hypot(b.x - f.x, b.y - f.y) < f.r + 5) {
+          if (Math.hypot(wd(b.x - f.x), b.y - f.y) < f.r + 5) {
             f.hp--; hits++; gone = true;
             explode(b.x, b.y, "cyan", 5);
             if (f.hp <= 0) {
@@ -516,12 +571,12 @@
       // alien bullets
       for (let i = fBullets.length - 1; i >= 0; i--) {
         const b = fBullets[i];
-        b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
-        const d = Math.hypot(b.x - pwx, b.y - pwy);
-        if (alive && d < 14) { fBullets.splice(i, 1); hitPlayer(10); continue; }
-        if (alive && !b.grazed && d < 34) { b.grazed = true; grazes++; }
-        const by2 = b.y - sc;
-        if (b.life <= 0 || b.x < -40 || b.x > gw + 40 || by2 < -40 || by2 > gh + 40) fBullets.splice(i, 1);
+        b.x = wmod(b.x + b.vx * dt); b.y += b.vy * dt; b.life -= dt;
+        const d = Math.hypot(wd(b.x - pwx), b.y - pwy);
+        if (alive && d < PR) { fBullets.splice(i, 1); hitPlayer(10); continue; }
+        if (alive && !b.grazed && d < PR + 20) { b.grazed = true; grazes++; }
+        const by2 = b.y - sc, bx2 = wd(b.x - camX);
+        if (b.life <= 0 || bx2 < -gw / 2 - 40 || bx2 > gw / 2 + 40 || by2 < -40 || by2 > gh + 40) fBullets.splice(i, 1);
       }
 
       // particles
@@ -540,7 +595,7 @@
     function drawFoe(f) {
       const rgb = HUES[f.hue] || HUES.rose, R = f.r;
       gctx.save();
-      gctx.translate(f.x, f.y);
+      gctx.translate(gx(f.x), f.y);
       gctx.rotate(Math.sin(f.wob) * 0.18);
       const gl = gctx.createRadialGradient(0, 0, 0, 0, 0, R * 2.4);
       gl.addColorStop(0, `rgba(${rgb},0.32)`);
@@ -577,31 +632,33 @@
       gctx.setTransform(gdpr, 0, 0, gdpr, 0, 0);
       gctx.clearRect(0, 0, gw, gh);
       gctx.save();
-      // entities are stored in world (page) space; shift up by the scroll so
-      // they stay pinned to the background and can scroll out of view
+      // y is world (page) space — shift up by the scroll; x is converted per
+      // entity through gx() so it wraps around the camera
       gctx.translate(shakeX, shakeY - window.scrollY);
 
       for (const b of fBullets) {
-        const g = gctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, 9);
+        const sx = gx(b.x);
+        const g = gctx.createRadialGradient(sx, b.y, 0, sx, b.y, 9);
         g.addColorStop(0, "rgba(255,210,230,0.95)");
         g.addColorStop(0.4, "rgba(224,138,168,0.9)");
         g.addColorStop(1, "rgba(224,138,168,0)");
         gctx.fillStyle = g;
-        gctx.beginPath(); gctx.arc(b.x, b.y, 9, 0, 6.2832); gctx.fill();
+        gctx.beginPath(); gctx.arc(sx, b.y, 9, 0, 6.2832); gctx.fill();
         gctx.fillStyle = "#fff";
-        gctx.beginPath(); gctx.arc(b.x, b.y, 2.2, 0, 6.2832); gctx.fill();
+        gctx.beginPath(); gctx.arc(sx, b.y, 2.2, 0, 6.2832); gctx.fill();
       }
 
       gctx.lineWidth = 3.2; gctx.lineCap = "round";
       for (const b of pBullets) {
+        const sx = gx(b.x);
         const ang = Math.atan2(b.vy, b.vx), len = 16;
-        const tx = b.x - Math.cos(ang) * len, ty = b.y - Math.sin(ang) * len;
-        const g = gctx.createLinearGradient(b.x, b.y, tx, ty);
+        const tx = sx - Math.cos(ang) * len, ty = b.y - Math.sin(ang) * len;
+        const g = gctx.createLinearGradient(sx, b.y, tx, ty);
         g.addColorStop(0, "rgba(255,246,216,1)");
         g.addColorStop(0.5, "rgba(127,214,232,0.9)");
         g.addColorStop(1, "rgba(127,214,232,0)");
         gctx.strokeStyle = g;
-        gctx.beginPath(); gctx.moveTo(b.x, b.y); gctx.lineTo(tx, ty); gctx.stroke();
+        gctx.beginPath(); gctx.moveTo(sx, b.y); gctx.lineTo(tx, ty); gctx.stroke();
       }
 
       for (const f of foes) drawFoe(f);
@@ -609,15 +666,15 @@
       for (const p of parts) {
         gctx.globalAlpha = Math.max(0, p.life / p.max);
         gctx.fillStyle = p.color;
-        gctx.beginPath(); gctx.arc(p.x, p.y, p.r, 0, 6.2832); gctx.fill();
+        gctx.beginPath(); gctx.arc(gx(p.x), p.y, p.r, 0, 6.2832); gctx.fill();
       }
       gctx.globalAlpha = 1;
       gctx.restore();
     }
 
     function render() {
-      const sx = px + shakeX, sy = py + shakeY;
-      rocket.style.transform = `translate3d(${sx.toFixed(1)}px, ${sy.toFixed(1)}px, 0) rotate(${rot.toFixed(2)}deg)`;
+      const sx = gx(rx) + shakeX, sy = ry - window.scrollY + shakeY;
+      rocket.style.transform = `translate3d(${sx.toFixed(1)}px, ${sy.toFixed(1)}px, 0) rotate(${rot.toFixed(2)}deg)` + (RSCALE !== 1 ? ` scale(${RSCALE})` : "");
       flame.style.setProperty("--thrust", thrust.toFixed(3));
     }
 
@@ -626,47 +683,36 @@
       last = now;
 
       if (alive) {
-        const ax = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-        const ay = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
-        const boosting = keys.boost && (ax !== 0 || ay !== 0);
+        // steering: pointer (slither-style, thrust toward it) or keys
+        let ax = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+        let ay = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+        if (aim.on) {
+          const dx = aim.x - gx(rx), dy = aim.y - (ry - window.scrollY);
+          const d = Math.hypot(dx, dy);
+          if (d > 24) { ax = dx / d; ay = dy / d; }  // deadzone right on the rocket
+        }
+        const steering = ax !== 0 || ay !== 0;
+        const boost = keys.boost || aim.boost;   // Shift, or double-click & hold
+        const boosting = boost && steering;
 
-        const accel = ACCEL * (keys.boost ? BOOST_ACCEL : 1);
+        const accel = ACCEL * (boost ? BOOST_ACCEL : 1);
         vx += ax * accel * dt;
         vy += ay * accel * dt;
 
         const damp = Math.exp(-DAMP * dt);
         vx *= damp; vy *= damp;
 
-        const maxv = keys.boost ? BOOST_MAXV : MAXV;
+        const maxv = boost ? BOOST_MAXV : MAXV;
         sp = Math.hypot(vx, vy);
         if (sp > maxv) { vx = vx / sp * maxv; vy = vy / sp * maxv; sp = maxv; }
         rocket.classList.toggle("is-boosting", boosting);
 
-        // horizontal: move within the viewport, soft-bounce off the sides
-        px += vx * dt;
-        const xMin = MARGIN, xMax = innerWidth - MARGIN;
-        if (px < xMin) { px = xMin; vx = Math.abs(vx) * 0.4; }
-        else if (px > xMax) { px = xMax; vx = -Math.abs(vx) * 0.4; }
-
-        // vertical: stay inside the band; overflow drives the page scroll.
-        py += vy * dt;
-        const yMin = MARGIN, yMax = innerHeight - MARGIN;
-        if (py > yMax) {
-          const over = py - yMax;
-          const before = window.scrollY;
-          window.scrollBy(0, over);
-          const moved = window.scrollY - before;
-          py = yMax + (over - moved);
-          if (moved < over - 0.5) vy *= 0.6;
-        } else if (py < yMin) {
-          const over = yMin - py;
-          const before = window.scrollY;
-          window.scrollBy(0, -over);
-          const moved = before - window.scrollY;
-          py = yMin - (over - moved);
-          if (moved < over - 0.5) vy *= 0.6;
-        }
-        py = clamp(py, 6, innerHeight - 6);
+        // horizontal wraps; top/bottom of the page are hard, with a soft bounce
+        rx = wmod(rx + vx * dt);
+        ry += vy * dt;
+        const yMax = pageH() - MARGIN;
+        if (ry < MARGIN) { ry = MARGIN; vy = Math.abs(vy) * 0.4; }
+        else if (ry > yMax) { ry = yMax; vy = -Math.abs(vy) * 0.4; }
 
         if (sp > 40) {
           const targetRot = Math.atan2(vx, -vy) * 180 / Math.PI;
@@ -675,6 +721,18 @@
         let wantThrust = clamp((Math.abs(ax) + Math.abs(ay)) * 0.7 + sp / MAXV * 0.6, 0, 1);
         if (boosting) wantThrust = 1.4;
         thrust += (wantThrust - thrust) * 0.25;
+
+        // camera chases the rocket on an elastic tether, capped so the rocket
+        // never drifts too far from centre; vertical camera drives the scroll
+        const k = 1 - Math.exp(-FOLLOW * dt);
+        camX = wmod(camX + wd(rx - camX) * k);
+        camY += (ry - camY) * k;
+        const leadX = Math.min(140, innerWidth * 0.2), leadY = Math.min(130, innerHeight * 0.2);
+        const ox = wd(rx - camX), oy = ry - camY;
+        if (ox > leadX) camX = wmod(rx - leadX); else if (ox < -leadX) camX = wmod(rx + leadX);
+        if (oy > leadY) camY = ry - leadY; else if (oy < -leadY) camY = ry + leadY;
+        window.scrollTo(0, clamp(camY - innerHeight / 2, 0, pageH() - innerHeight));
+        placeWorld();
       } else {
         sp = Math.hypot(vx, vy);
         thrust += (0 - thrust) * 0.1;
@@ -689,6 +747,8 @@
     }
 
     function sizeGame() {
+      contentW = document.documentElement.clientWidth;
+      worldW = contentW * 2;   // wrap period: two page-widths of world
       if (!gcanvas) return;
       gdpr = Math.min(window.devicePixelRatio || 1, 2);
       gw = innerWidth; gh = innerHeight;
@@ -699,8 +759,13 @@
     }
 
     function resetGame() {
-      px = innerWidth / 2; py = innerHeight - MARGIN;
+      // rocket starts centred on the current view; content sits at its
+      // natural offset (camX = rx = screen centre → translateX(0))
+      camX = rx = innerWidth / 2;
+      ry = window.scrollY + innerHeight - MARGIN;
+      camY = window.scrollY + innerHeight / 2;
       vx = 0; vy = -MAXV * 0.5; rot = 0; thrust = 1;
+      aim.on = false; aim.boost = false;
       hp = MAXHP; alive = true; dead = false;
       gTime = 0; dist = 0; kills = 0; shots = 0; hits = 0; grazes = 0;
       noHit = 0; topSpeed = 0; dmgTaken = 0;
@@ -720,10 +785,13 @@
       active = true;
       sizeGame();
       resetGame();
+      // reveal everything so the wrapped clone matches the live content
+      document.querySelectorAll(".reveal, .reveal-up").forEach((el) => el.classList.add("in"));
+      buildClone();
+      placeWorld();
       try { audio(); if (actx && actx.state === "suspended") actx.resume(); } catch (e) { /* ignore */ }
       if (gcanvas) gcanvas.hidden = false;
       if (hud) hud.hidden = false;
-      if (dpad) { dpad.hidden = false; dpad.classList.add("is-on"); }
       document.documentElement.classList.add("flying");
       btn.setAttribute("aria-pressed", "true");
       updateHud(); render(); drawGame();
@@ -736,9 +804,10 @@
       active = false;
       cancelAnimationFrame(raf);
       keys.up = keys.down = keys.left = keys.right = keys.boost = keys.fire = false;
+      aim.on = false; aim.boost = false;
       rocket.classList.remove("is-boosting");
       rocket.hidden = true;
-      if (dpad) { dpad.hidden = true; dpad.classList.remove("is-on"); }
+      dropClone();
       if (gcanvas) { gcanvas.hidden = true; if (gctx) { gctx.setTransform(1, 0, 0, 1, 0, 0); gctx.clearRect(0, 0, gcanvas.width, gcanvas.height); } }
       if (hud) hud.hidden = true;
       if (gameover) { gameover.hidden = true; gameover.classList.remove("in"); }
@@ -777,32 +846,31 @@
       if (dir) keys[dir] = false;
     });
 
-    // click / tap to shoot (ignore clicks on UI chrome)
-    window.addEventListener("mousedown", (e) => {
+    // pointer steering — hold anywhere to thrust toward the pointer (and
+    // shoot while held); double-click/tap & hold boosts. Same for mouse & touch.
+    let lastDown = 0;
+    window.addEventListener("pointerdown", (e) => {
       if (!active || dead) return;
-      if (e.target.closest(".nav, .dpad, .gameover, button, a")) return;
-      tryShoot();
+      if (e.target.closest(".nav, .gameover, button, a")) return;
+      const now = performance.now();
+      aim.boost = now - lastDown < 300;
+      lastDown = now;
+      aim.on = true; aim.x = e.clientX; aim.y = e.clientY;
+      e.preventDefault();
     });
-
-    // on-screen d-pad for touch
-    if (dpad) {
-      dpad.querySelectorAll(".dpad__btn").forEach((b) => {
-        const dir = b.getAttribute("data-dir");
-        const on = (e) => { e.preventDefault(); keys[dir] = true; };
-        const off = (e) => { e.preventDefault(); keys[dir] = false; };
-        b.addEventListener("pointerdown", on);
-        b.addEventListener("pointerup", off);
-        b.addEventListener("pointerleave", off);
-        b.addEventListener("pointercancel", off);
-      });
-    }
+    window.addEventListener("pointermove", (e) => {
+      if (aim.on) { aim.x = e.clientX; aim.y = e.clientY; }
+    }, { passive: true });
+    const aimOff = () => { aim.on = false; aim.boost = false; };
+    window.addEventListener("pointerup", aimOff);
+    window.addEventListener("pointercancel", aimOff);
 
     // keep things on screen / sized when the window changes
     window.addEventListener("resize", () => {
       if (!active) return;
       sizeGame();
-      px = clamp(px, MARGIN, innerWidth - MARGIN);
-      py = clamp(py, MARGIN, innerHeight - MARGIN);
+      rx = wmod(rx); camX = wmod(camX);
+      ry = clamp(ry, MARGIN, pageH() - MARGIN);
     }, { passive: true });
   })();
 
