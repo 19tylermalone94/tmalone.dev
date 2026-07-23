@@ -75,7 +75,9 @@ main, .nav, .foot { position: relative; z-index: 2; }
 /* flight mode wraps the page horizontally: .page-world gets a translateX and
    its clone sits one page-width to the left to cover the seam */
 .page-world { position: relative; z-index: 2; }
-html.flying .page-world { will-change: transform; }
+/* while flying the page is scenery: no hover effects firing as it slides
+   under the cursor, no links swallowing steering input */
+html.flying .page-world { will-change: transform; pointer-events: none; }
 .page-world--clone {
   position: absolute; top: 0; left: -100%; width: 100%;
   pointer-events: none;

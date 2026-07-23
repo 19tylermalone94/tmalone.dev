@@ -228,7 +228,7 @@
     const BULLET_V = 980;      // player bullet speed
     const FOE_BULLET_V = 360;  // alien bullet speed
     const isTouch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-    const RSCALE = isTouch ? 0.72 : 1;  // smaller rocket & foes on cramped screens
+    const RSCALE = isTouch ? 0.62 : 1;  // smaller rocket & foes on cramped screens
     const PR = 14 * RSCALE;             // player hit radius
 
     let active = false;
@@ -310,8 +310,11 @@
     function placeWorld() {
       if (!pageWorld) return;
       const off = ((innerWidth / 2 - camX) % contentW + contentW) % contentW;
-      pageWorld.style.transform = `translate3d(${off.toFixed(2)}px,0,0)`;
-      // keep clone canvases (hero starfield) mirroring the live ones
+      // whole pixels — fractional offsets make sliding text shimmer
+      pageWorld.style.transform = `translate3d(${Math.round(off)}px,0,0)`;
+      // keep clone canvases (hero starfield) mirroring the live ones — only
+      // needed while the hero is anywhere near the viewport
+      if (window.scrollY > innerHeight * 1.5) return;
       for (let i = 0; i < srcCanvases.length; i++) {
         const s = srcCanvases[i], c = cloneCanvases[i];
         if (!s || !c || !s.width) continue;
