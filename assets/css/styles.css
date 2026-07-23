@@ -159,7 +159,20 @@ main, .nav, .foot { position: relative; z-index: 2; }
   filter: drop-shadow(0 4px 10px rgba(0,0,0,0.45)) drop-shadow(0 0 14px rgba(127,214,232,0.45));
 }
 .rocket[hidden] { display: none; }
-.rocket__svg { display: block; overflow: visible; }
+.rocket__svg { display: block; overflow: visible; width: 100%; height: 100%; }
+
+/* smaller ship on small/touch screens — mirrors SHIP_SCALE in main.js */
+@media (max-width: 600px), (pointer: coarse) {
+  .rocket {
+    width: 35px; height: 60px;
+    margin-left: -17px; margin-top: -30px;
+  }
+  .rocket__flame {
+    top: 55px;
+    width: calc(8px + 5px * var(--thrust));
+    height: calc(4px + 22px * var(--thrust));
+  }
+}
 
 /* afterburner — boosting (Shift, or double-click/tap and hold) */
 .rocket.is-boosting {

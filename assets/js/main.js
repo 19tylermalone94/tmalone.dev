@@ -211,11 +211,16 @@
     const goAgain = document.getElementById("goAgain");
     const goClose = document.getElementById("goClose");
 
+    // display scale — shrink ships & hitboxes on small/touch screens so the
+    // play area feels less cramped
+    const isMobile = window.matchMedia("(max-width: 600px), (pointer: coarse)").matches;
+    const SHIP_SCALE = isMobile ? 0.72 : 1;
+
     // flight physics
     const ACCEL = 2200;     // px/s^2 of thrust
     const DAMP = 2.6;       // velocity damping per second
     const MAXV = 1100;      // px/s speed cap
-    const H_MARGIN = 36;    // how close the rocket can get to the left/right edges
+    const H_MARGIN = 36 * SHIP_SCALE; // how close the rocket can get to the left/right edges
     const V_TETHER = 100;   // vertical leash radius around screen-center — exceeding it scrolls the page instead, keeping the rocket tethered near center like slither.io
     const BOOST_ACCEL = 2;  // thrust multiplier while Shift is held
     const BOOST_MAXV = 2100; // raised speed cap while boosting
@@ -226,6 +231,8 @@
     const BULLET_V = 980;      // player bullet speed
     const FOE_BULLET_V = 360;  // alien bullet speed
     const MOVE_FIRE_SPEED = 40; // gun auto-fires once speed exceeds this
+    const PLAYER_R = 14 * SHIP_SCALE; // player hit radius, matches the (possibly shrunk) sprite
+    const GRAZE_R = 34 * SHIP_SCALE;  // near-miss radius for the "Close Shave" achievement
 
     let active = false;
     let raf = 0, last = 0, sp = 0;
@@ -328,7 +335,7 @@
       else if (edge === 2) { x = Math.random() * gw; y = sc + gh + m; }
       else { x = -m; y = sc + Math.random() * gh; }
       const tough = Math.random() < Math.min(0.4, gTime * 0.006);
-      foes.push({ x, y, vx: 0, vy: 0, r: tough ? 21 : 15, hp: tough ? 3 : 1, hue: tough ? "gold" : "rose", shoot: 0.8 + Math.random() * 1.4, wob: Math.random() * 6.2832 });
+      foes.push({ x, y, vx: 0, vy: 0, r: (tough ? 21 : 15) * SHIP_SCALE, hp: tough ? 3 : 1, hue: tough ? "gold" : "rose", shoot: 0.8 + Math.random() * 1.4, wob: Math.random() * 6.2832 });
     }
 
     function tryShoot() {
@@ -337,7 +344,7 @@
       shots++;
       const rad = rot * Math.PI / 180;
       const dx = Math.sin(rad), dy = -Math.cos(rad);
-      pBullets.push({ x: px + dx * 28, y: (py + window.scrollY) + dy * 28, vx: dx * BULLET_V + vx * 0.3, vy: dy * BULLET_V + vy * 0.3, life: 1.1 });
+      pBullets.push({ x: px + dx * 28 * SHIP_SCALE, y: (py + window.scrollY) + dy * 28 * SHIP_SCALE, vx: dx * BULLET_V + vx * 0.3, vy: dy * BULLET_V + vy * 0.3, life: 1.1 });
       vx -= dx * 26; vy -= dy * 26;            // gentle recoil
       beep(660, 0.07, "square", 0.025, 240);
     }
@@ -490,7 +497,7 @@
           beep(170, 0.12, "sawtooth", 0.016, 90);
         }
 
-        if (alive && d < f.r + 14) {              // rammed the player
+        if (alive && d < f.r + PLAYER_R) {        // rammed the player
           explode(f.x, f.y, f.hue, 18);
           foes.splice(i, 1); kills++;
           hitPlayer(22);
@@ -526,8 +533,8 @@
         const b = fBullets[i];
         b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
         const d = Math.hypot(b.x - pwx, b.y - pwy);
-        if (alive && d < 14) { fBullets.splice(i, 1); hitPlayer(10); continue; }
-        if (alive && !b.grazed && d < 34) { b.grazed = true; grazes++; }
+        if (alive && d < PLAYER_R) { fBullets.splice(i, 1); hitPlayer(10); continue; }
+        if (alive && !b.grazed && d < GRAZE_R) { b.grazed = true; grazes++; }
         const by2 = b.y - sc;
         if (b.life <= 0 || b.x < -40 || b.x > gw + 40 || by2 < -40 || by2 > gh + 40) fBullets.splice(i, 1);
       }
