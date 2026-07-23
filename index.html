@@ -40,7 +40,7 @@
     <a href="#contact">Contact</a>
   </nav>
   <div class="nav__actions">
-    <button type="button" class="nav__fly" id="flyBtn" aria-pressed="false" aria-label="Fly a rocket and fight aliens" title="Fly &amp; fight: WASD/arrows to move, click or Space to shoot, Shift to boost">
+    <button type="button" class="nav__fly" id="flyBtn" aria-pressed="false" aria-label="Fly a rocket and fight aliens" title="Fly &amp; fight: click or tap in front of the ship to move, double-click/tap and hold to boost — the gun fires automatically while moving">
       <span class="nav__fly-ico" aria-hidden="true">🚀</span>
     </button>
     <a href="#contact" class="nav__cta">Available</a>
@@ -78,13 +78,6 @@
   <span class="rocket__flame" aria-hidden="true"></span>
 </div>
 
-
-<div class="dpad" id="dpad" hidden aria-hidden="true">
-  <button class="dpad__btn dpad__up"    data-dir="up">▲</button>
-  <button class="dpad__btn dpad__left"  data-dir="left">◀</button>
-  <button class="dpad__btn dpad__right" data-dir="right">▶</button>
-  <button class="dpad__btn dpad__down"  data-dir="down">▼</button>
-</div>
 
 <!-- ============ GAME (combat layer · HUD · achievements) ============ -->
 <canvas class="game-layer" id="gameLayer" hidden aria-hidden="true"></canvas>

@@ -181,9 +181,11 @@
   }
 
   /* ============================================================
-     Flight mode → COSMIC SKIRMISH — drive a rocket with WASD /
-     arrows (flying past the comfort band scrolls the page), shoot
-     with click or Space, and survive waves of alien saucers that
+     Flight mode → COSMIC SKIRMISH — drive a rocket by clicking or
+     tapping in front of it; it steers toward the pointer while
+     held, slither.io style (works the same on mouse or touch).
+     Double-click/tap and hold to boost. The gun fires automatically
+     while moving, and the rocket chases waves of alien saucers that
      chase and fire back. Track survival time, kills, distance and
      unlock achievements along the way.
      ============================================================ */
@@ -191,7 +193,6 @@
     const btn = document.getElementById("flyBtn");
     const rocket = document.getElementById("rocket");
     const flame = rocket && rocket.querySelector(".rocket__flame");
-    const dpad = document.getElementById("dpad");
     if (!btn || !rocket || !flame) return;
 
     // game DOM
@@ -223,13 +224,18 @@
     const FIRE_CD = 0.16;      // seconds between player shots
     const BULLET_V = 980;      // player bullet speed
     const FOE_BULLET_V = 360;  // alien bullet speed
-    const isTouch = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+    const MOVE_FIRE_SPEED = 40; // gun auto-fires once speed exceeds this
 
     let active = false;
     let raf = 0, last = 0, sp = 0;
     let px = 0, py = 0, vx = 0, vy = 0, rot = 0, thrust = 0;
     let gdpr = 1, gw = 0, gh = 0;
-    const keys = { up: false, down: false, left: false, right: false, boost: false, fire: false };
+    const keys = { up: false, down: false, left: false, right: false, boost: false };
+    // pointer/touch steering — click or tap in front of the ship to move
+    // toward it (held = keep steering); a second tap within the double-tap
+    // window engages boost for as long as it's held.
+    let steering = false, pointerBoost = false, targetX = 0, targetY = 0;
+    let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
 
     // run state
     let hp, alive, dead;
@@ -353,7 +359,8 @@
       explode(px, wy, "gold", 40); explode(px, wy, "rose", 26); explode(px, wy, "white", 16);
       shake = 18;
       rocket.hidden = true;
-      keys.up = keys.down = keys.left = keys.right = keys.boost = keys.fire = false;
+      keys.up = keys.down = keys.left = keys.right = keys.boost = false;
+      steering = false; pointerBoost = false;
       beep(90, 0.6, "sawtooth", 0.09, 30);
       saveBest();
       setTimeout(() => { if (active && dead) showOverlay(); }, 850);
@@ -450,7 +457,7 @@
         noHit += dt;
         if (sp > topSpeed) topSpeed = sp;
         if (!reachedBottom && window.scrollY + innerHeight >= document.documentElement.scrollHeight - 3) reachedBottom = true;
-        if (keys.fire || isTouch) tryShoot();
+        if (sp > MOVE_FIRE_SPEED) tryShoot();
 
         spawnT -= dt;
         const maxFoes = Math.min(11, 3 + Math.floor(gTime / 11));
@@ -626,9 +633,15 @@
       last = now;
 
       if (alive) {
-        const ax = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-        const ay = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
-        const boosting = keys.boost && (ax !== 0 || ay !== 0);
+        let ax = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+        let ay = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
+        let wantBoost = keys.boost;
+        if (ax === 0 && ay === 0 && steering) {
+          const dx = targetX - px, dy = targetY - py, d = Math.hypot(dx, dy);
+          if (d > 4) { ax = dx / d; ay = dy / d; }
+          wantBoost = wantBoost || pointerBoost;
+        }
+        const boosting = wantBoost && (ax !== 0 || ay !== 0);
 
         const accel = ACCEL * (keys.boost ? BOOST_ACCEL : 1);
         vx += ax * accel * dt;
@@ -708,7 +721,8 @@
       foes = []; pBullets = []; fBullets = []; parts = [];
       spawnT = 0.6; fireT = 0; shake = 0; shakeX = 0; shakeY = 0;
       unlocked.clear(); earned.length = 0;
-      keys.up = keys.down = keys.left = keys.right = keys.boost = keys.fire = false;
+      keys.up = keys.down = keys.left = keys.right = keys.boost = false;
+      steering = false; pointerBoost = false;
       rocket.hidden = false;
       if (gameover) { gameover.hidden = true; gameover.classList.remove("in"); }
       if (toasts) toasts.innerHTML = "";
@@ -723,7 +737,6 @@
       try { audio(); if (actx && actx.state === "suspended") actx.resume(); } catch (e) { /* ignore */ }
       if (gcanvas) gcanvas.hidden = false;
       if (hud) hud.hidden = false;
-      if (dpad) { dpad.hidden = false; dpad.classList.add("is-on"); }
       document.documentElement.classList.add("flying");
       btn.setAttribute("aria-pressed", "true");
       updateHud(); render(); drawGame();
@@ -735,10 +748,10 @@
       if (!active) return;
       active = false;
       cancelAnimationFrame(raf);
-      keys.up = keys.down = keys.left = keys.right = keys.boost = keys.fire = false;
+      keys.up = keys.down = keys.left = keys.right = keys.boost = false;
+      steering = false; pointerBoost = false;
       rocket.classList.remove("is-boosting");
       rocket.hidden = true;
-      if (dpad) { dpad.hidden = true; dpad.classList.remove("is-on"); }
       if (gcanvas) { gcanvas.hidden = true; if (gctx) { gctx.setTransform(1, 0, 0, 1, 0, 0); gctx.clearRect(0, 0, gcanvas.width, gcanvas.height); } }
       if (hud) hud.hidden = true;
       if (gameover) { gameover.hidden = true; gameover.classList.remove("in"); }
@@ -763,7 +776,6 @@
     window.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && active) { stop(); return; }
       if (!active) return;
-      if (e.code === "Space") { keys.fire = true; e.preventDefault(); return; }
       if (e.key === "Shift") { keys.boost = true; return; }
       const dir = KEYMAP[e.code];
       if (!dir) return;
@@ -771,31 +783,37 @@
       e.preventDefault();                // stop arrows from scrolling on their own
     });
     window.addEventListener("keyup", (e) => {
-      if (e.code === "Space") { keys.fire = false; return; }
       if (e.key === "Shift") keys.boost = false;
       const dir = KEYMAP[e.code];
       if (dir) keys[dir] = false;
     });
 
-    // click / tap to shoot (ignore clicks on UI chrome)
-    window.addEventListener("mousedown", (e) => {
-      if (!active || dead) return;
-      if (e.target.closest(".nav, .dpad, .gameover, button, a")) return;
-      tryShoot();
-    });
+    // click / tap in front of the ship to steer toward the pointer — held
+    // means keep steering, like slither.io — and a second press within the
+    // double-click/tap window engages boost for as long as it stays down.
+    // Works identically for mouse and touch. Ignore clicks on UI chrome.
+    const TAP_GAP_MS = 350, TAP_GAP_PX = 40;
+    function isChrome(el) { return el.closest && el.closest(".nav, .gameover, button, a"); }
 
-    // on-screen d-pad for touch
-    if (dpad) {
-      dpad.querySelectorAll(".dpad__btn").forEach((b) => {
-        const dir = b.getAttribute("data-dir");
-        const on = (e) => { e.preventDefault(); keys[dir] = true; };
-        const off = (e) => { e.preventDefault(); keys[dir] = false; };
-        b.addEventListener("pointerdown", on);
-        b.addEventListener("pointerup", off);
-        b.addEventListener("pointerleave", off);
-        b.addEventListener("pointercancel", off);
-      });
-    }
+    window.addEventListener("pointerdown", (e) => {
+      if (!active || dead || isChrome(e.target)) return;
+      const now = performance.now();
+      const isDouble = now - lastTapTime < TAP_GAP_MS &&
+        Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < TAP_GAP_PX;
+      lastTapTime = now; lastTapX = e.clientX; lastTapY = e.clientY;
+      steering = true;
+      pointerBoost = isDouble;
+      targetX = e.clientX; targetY = e.clientY;
+      e.preventDefault();
+    }, { passive: false });
+    window.addEventListener("pointermove", (e) => {
+      if (!steering) return;
+      targetX = e.clientX; targetY = e.clientY;
+      e.preventDefault();
+    }, { passive: false });
+    function endSteer() { steering = false; pointerBoost = false; }
+    window.addEventListener("pointerup", endSteer);
+    window.addEventListener("pointercancel", endSteer);
 
     // keep things on screen / sized when the window changes
     window.addEventListener("resize", () => {

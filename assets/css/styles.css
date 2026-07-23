@@ -39,7 +39,7 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; background: #000; }
-html.flying { scroll-behavior: auto; }
+html.flying { scroll-behavior: auto; touch-action: none; }
 
 body {
   font-family: var(--f-body);
@@ -160,7 +160,7 @@ main, .nav, .foot { position: relative; z-index: 2; }
 .rocket[hidden] { display: none; }
 .rocket__svg { display: block; overflow: visible; }
 
-/* afterburner — Shift held */
+/* afterburner — boosting (Shift, or double-click/tap and hold) */
 .rocket.is-boosting {
   filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5)) drop-shadow(0 0 22px rgba(127,214,232,0.85));
 }
@@ -186,30 +186,6 @@ main, .nav, .foot { position: relative; z-index: 2; }
 @keyframes flameFlicker {
   0%   { transform: translateX(-50%) scaleY(1) scaleX(1); }
   100% { transform: translateX(-52%) scaleY(0.86) scaleX(1.12); }
-}
-
-/* on-screen d-pad (touch) */
-.dpad {
-  position: fixed; right: 1.1rem; bottom: 1.4rem; z-index: 66;
-  display: none;
-  grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px);
-  gap: 6px; touch-action: none;
-}
-.dpad[hidden] { display: none !important; }
-.dpad__btn {
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1rem; color: var(--star); cursor: pointer;
-  background: rgba(7,10,22,0.7); backdrop-filter: blur(10px);
-  border: 1px solid var(--line); border-radius: 12px;
-  -webkit-user-select: none; user-select: none;
-}
-.dpad__btn:active { background: rgba(127,214,232,0.25); border-color: var(--cyan); }
-.dpad__up    { grid-column: 2; grid-row: 1; }
-.dpad__left  { grid-column: 1; grid-row: 2; }
-.dpad__right { grid-column: 3; grid-row: 2; }
-.dpad__down  { grid-column: 2; grid-row: 3; }
-@media (hover: none) and (pointer: coarse) {
-  .dpad.is-on { display: grid; }
 }
 
 /* ============================================================
