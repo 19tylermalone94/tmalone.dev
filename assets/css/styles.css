@@ -40,7 +40,7 @@
 
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; background: #000; }
 html.flying { scroll-behavior: auto; touch-action: none; overscroll-behavior: none; }
-html.flying body { user-select: none; -webkit-user-select: none; cursor: crosshair; }
+html.flying body { user-select: none; -webkit-user-select: none; cursor: crosshair; touch-action: none; }
 
 body {
   font-family: var(--f-body);

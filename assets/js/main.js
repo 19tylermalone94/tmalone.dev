@@ -861,6 +861,12 @@
     window.addEventListener("pointermove", (e) => {
       if (aim.on) { aim.x = e.clientX; aim.y = e.clientY; }
     }, { passive: true });
+    // touch-action:none on the root doesn't reliably stop the *document* pan
+    // on mobile Safari/Chrome — dragging to steer would still scroll the page.
+    // A non-passive touchmove preventDefault is the only dependable way.
+    window.addEventListener("touchmove", (e) => {
+      if (active && !e.target.closest(".gameover")) e.preventDefault();
+    }, { passive: false });
     const aimOff = () => { aim.on = false; aim.boost = false; };
     window.addEventListener("pointerup", aimOff);
     window.addEventListener("pointercancel", aimOff);
