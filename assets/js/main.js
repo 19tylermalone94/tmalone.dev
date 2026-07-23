@@ -215,7 +215,8 @@
     const ACCEL = 2200;     // px/s^2 of thrust
     const DAMP = 2.6;       // velocity damping per second
     const MAXV = 1100;      // px/s speed cap
-    const MARGIN = 70;      // how close the rocket gets to viewport edges
+    const H_MARGIN = 36;    // how close the rocket can get to the left/right edges
+    const V_TETHER = 100;   // vertical leash radius around screen-center — exceeding it scrolls the page instead, keeping the rocket tethered near center like slither.io
     const BOOST_ACCEL = 2;  // thrust multiplier while Shift is held
     const BOOST_MAXV = 2100; // raised speed cap while boosting
 
@@ -643,27 +644,29 @@
         }
         const boosting = wantBoost && (ax !== 0 || ay !== 0);
 
-        const accel = ACCEL * (keys.boost ? BOOST_ACCEL : 1);
+        const accel = ACCEL * (wantBoost ? BOOST_ACCEL : 1);
         vx += ax * accel * dt;
         vy += ay * accel * dt;
 
         const damp = Math.exp(-DAMP * dt);
         vx *= damp; vy *= damp;
 
-        const maxv = keys.boost ? BOOST_MAXV : MAXV;
+        const maxv = wantBoost ? BOOST_MAXV : MAXV;
         sp = Math.hypot(vx, vy);
         if (sp > maxv) { vx = vx / sp * maxv; vy = vy / sp * maxv; sp = maxv; }
         rocket.classList.toggle("is-boosting", boosting);
 
         // horizontal: move within the viewport, soft-bounce off the sides
         px += vx * dt;
-        const xMin = MARGIN, xMax = innerWidth - MARGIN;
+        const xMin = H_MARGIN, xMax = innerWidth - H_MARGIN;
         if (px < xMin) { px = xMin; vx = Math.abs(vx) * 0.4; }
         else if (px > xMax) { px = xMax; vx = -Math.abs(vx) * 0.4; }
 
-        // vertical: stay inside the band; overflow drives the page scroll.
+        // vertical: stay tethered near screen-center; overflow scrolls the
+        // page instead, so the world moves past the rocket, slither.io-style.
         py += vy * dt;
-        const yMin = MARGIN, yMax = innerHeight - MARGIN;
+        const cy = innerHeight / 2;
+        const yMin = cy - V_TETHER, yMax = cy + V_TETHER;
         if (py > yMax) {
           const over = py - yMax;
           const before = window.scrollY;
@@ -712,7 +715,7 @@
     }
 
     function resetGame() {
-      px = innerWidth / 2; py = innerHeight - MARGIN;
+      px = innerWidth / 2; py = innerHeight / 2;
       vx = 0; vy = -MAXV * 0.5; rot = 0; thrust = 1;
       hp = MAXHP; alive = true; dead = false;
       gTime = 0; dist = 0; kills = 0; shots = 0; hits = 0; grazes = 0;
@@ -829,8 +832,9 @@
     window.addEventListener("resize", () => {
       if (!active) return;
       sizeGame();
-      px = clamp(px, MARGIN, innerWidth - MARGIN);
-      py = clamp(py, MARGIN, innerHeight - MARGIN);
+      const cy = innerHeight / 2;
+      px = clamp(px, H_MARGIN, innerWidth - H_MARGIN);
+      py = clamp(py, cy - V_TETHER, cy + V_TETHER);
     }, { passive: true });
   })();
 
