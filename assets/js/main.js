@@ -187,12 +187,14 @@
      Flight mode → COSMIC SKIRMISH — slither-style controls: the
      rocket lives in world space and the camera chases it with a
      soft tether. Vertically the camera drives the page scroll
-     (hard top/bottom bounds); horizontally the page content wraps
-     around a loop of empty space three page-widths wide, so the
-     content face slides fully off-screen before it reappears on
-     the other side — like flying around a prism with one content
-     face and three blank ones. Hold click/touch to steer and
-     shoot toward the pointer; WASD/arrows still work.
+     (hard top/bottom bounds); horizontally the content sits on the
+     front face of an invisible cylinder the rocket circles. A dimmed,
+     mirrored clone of the page hangs on the back face, half a loop
+     away, so flying around the far side reveals the reverse of the
+     same content — like circling a pillar with a banner wrapped
+     around it — before the front face slides back into view. Hold
+     click/touch to steer and shoot toward the pointer; WASD/arrows
+     still work.
      ============================================================ */
   (function flight() {
     const btn = document.getElementById("flyBtn");
@@ -307,6 +309,34 @@
       const off = (((raw + half) % worldW + worldW) % worldW) - half;
       // whole pixels — fractional offsets make sliding text shimmer
       pageWorld.style.transform = `translate3d(${Math.round(off)}px,0,0)`;
+    }
+
+    /* ---- the backside: content is a face wrapped around an invisible
+       cylinder the rocket circles. A mirrored, dimmed clone of the page sits
+       diametrically opposite (half a loop away) so flying around the far
+       side reveals the reverse of the same content instead of empty void. ---- */
+    let mirrorWorld = null;
+    function buildMirror() {
+      if (!pageWorld || mirrorWorld) return;
+      mirrorWorld = pageWorld.cloneNode(true);
+      mirrorWorld.removeAttribute("id");
+      mirrorWorld.className = "page-world page-world--mirror";
+      mirrorWorld.setAttribute("aria-hidden", "true");
+      mirrorWorld.setAttribute("inert", "");
+      mirrorWorld.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+      pageWorld.parentNode.insertBefore(mirrorWorld, pageWorld);
+    }
+    function removeMirror() {
+      if (mirrorWorld) { mirrorWorld.remove(); mirrorWorld = null; }
+    }
+    function placeMirror() {
+      if (!mirrorWorld) return;
+      const half = worldW / 2;
+      // same wrap math as placeWorld(), shifted by half a loop so the
+      // reflection lands opposite the real face
+      const raw = innerWidth / 2 - camX + half;
+      const off = (((raw + half) % worldW + worldW) % worldW) - half;
+      mirrorWorld.style.transform = `translate3d(${Math.round(off)}px,0,0) scaleX(-1)`;
     }
 
     /* ---- tiny WebAudio blips (created on first gesture) ---- */
@@ -717,6 +747,7 @@
         if (oy > leadY) camY = ry - leadY; else if (oy < -leadY) camY = ry + leadY;
         window.scrollTo(0, clamp(camY - innerHeight / 2, 0, pageH() - innerHeight));
         placeWorld();
+        placeMirror();
       } else {
         sp = Math.hypot(vx, vy);
         thrust += (0 - thrust) * 0.1;
@@ -772,7 +803,9 @@
       // reveal everything so sections are already visible when the wrap
       // slides them into view
       document.querySelectorAll(".reveal, .reveal-up").forEach((el) => el.classList.add("in"));
+      buildMirror();
       placeWorld();
+      placeMirror();
       try { audio(); if (actx && actx.state === "suspended") actx.resume(); } catch (e) { /* ignore */ }
       if (gcanvas) gcanvas.hidden = false;
       if (hud) hud.hidden = false;
@@ -792,6 +825,7 @@
       rocket.classList.remove("is-boosting");
       rocket.hidden = true;
       resetWorld();
+      removeMirror();
       if (gcanvas) { gcanvas.hidden = true; if (gctx) { gctx.setTransform(1, 0, 0, 1, 0, 0); gctx.clearRect(0, 0, gcanvas.width, gcanvas.height); } }
       if (hud) hud.hidden = true;
       if (gameover) { gameover.hidden = true; gameover.classList.remove("in"); }
