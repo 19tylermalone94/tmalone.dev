@@ -220,7 +220,7 @@
     const ACCEL = 2200;     // px/s^2 of thrust
     const DAMP = 2.6;       // velocity damping per second
     const MAXV = 1100;      // px/s speed cap
-    const H_MARGIN = 36 * SHIP_SCALE; // off-screen buffer before the rocket wraps to the opposite side
+    const H_TETHER = Math.min(90, innerWidth * 0.12); // horizontal leash radius around screen-center — exceeding it pans the world camera (camX) instead, keeping the rocket near center (tighter on narrow phones so it doesn't drift to the edges)
     const V_TETHER = 70;    // vertical leash radius around screen-center — exceeding it scrolls the page instead, keeping the rocket tethered near center like slither.io
     const BOOST_ACCEL = 2;  // thrust multiplier while Shift is held
     const BOOST_MAXV = 2100; // raised speed cap while boosting
@@ -237,6 +237,7 @@
     let active = false;
     let raf = 0, last = 0, sp = 0;
     let px = 0, py = 0, vx = 0, vy = 0, rot = 0, thrust = 0;
+    let camX = 0;   // horizontal world-camera offset — the page can't scroll sideways, so panning this keeps the rocket centered while the alien world slides past
     let gdpr = 1, gw = 0, gh = 0;
     const keys = { up: false, down: false, left: false, right: false, boost: false };
     // pointer/touch steering — click or tap in front of the ship to move
@@ -330,11 +331,12 @@
     function spawnFoe() {
       const m = 60, edge = Math.floor(Math.random() * 4), sc = window.scrollY;
       let x, y;
-      // y is stored in world (page) space, so spawn around the current view
-      if (edge === 0) { x = Math.random() * gw; y = sc - m; }
-      else if (edge === 1) { x = gw + m; y = sc + Math.random() * gh; }
-      else if (edge === 2) { x = Math.random() * gw; y = sc + gh + m; }
-      else { x = -m; y = sc + Math.random() * gh; }
+      // entities live in world space; spawn around the current camera view
+      // (camX horizontally, scroll vertically)
+      if (edge === 0) { x = camX + Math.random() * gw; y = sc - m; }
+      else if (edge === 1) { x = camX + gw + m; y = sc + Math.random() * gh; }
+      else if (edge === 2) { x = camX + Math.random() * gw; y = sc + gh + m; }
+      else { x = camX - m; y = sc + Math.random() * gh; }
       const tough = Math.random() < Math.min(0.4, gTime * 0.006);
       foes.push({ x, y, vx: 0, vy: 0, r: (tough ? 21 : 15) * SHIP_SCALE, hp: tough ? 3 : 1, hue: tough ? "gold" : "rose", shoot: 0.8 + Math.random() * 1.4, wob: Math.random() * 6.2832 });
     }
@@ -345,7 +347,7 @@
       shots++;
       const rad = rot * Math.PI / 180;
       const dx = Math.sin(rad), dy = -Math.cos(rad);
-      pBullets.push({ x: px + dx * 28 * SHIP_SCALE, y: (py + window.scrollY) + dy * 28 * SHIP_SCALE, vx: dx * BULLET_V + vx * 0.3, vy: dy * BULLET_V + vy * 0.3, life: 1.1 });
+      pBullets.push({ x: (px + camX) + dx * 28 * SHIP_SCALE, y: (py + window.scrollY) + dy * 28 * SHIP_SCALE, vx: dx * BULLET_V + vx * 0.3, vy: dy * BULLET_V + vy * 0.3, life: 1.1 });
       vx -= dx * 26; vy -= dy * 26;            // gentle recoil
       beep(660, 0.07, "square", 0.025, 240);
     }
@@ -477,7 +479,7 @@
 
       // player position in world (page) space — foes/bullets live in world space
       const sc = window.scrollY;
-      const pwx = px, pwy = py + sc;
+      const pwx = px + camX, pwy = py + sc;
 
       const foeSpeed = Math.min(330, 150 + gTime * 2.4);
       for (let i = foes.length - 1; i >= 0; i--) {
@@ -510,8 +512,8 @@
       for (let i = pBullets.length - 1; i >= 0; i--) {
         const b = pBullets[i];
         b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
-        const by = b.y - sc;
-        let gone = b.life <= 0 || b.x < -30 || b.x > gw + 30 || by < -30 || by > gh + 30;
+        const by = b.y - sc, bx = b.x - camX;
+        let gone = b.life <= 0 || bx < -30 || bx > gw + 30 || by < -30 || by > gh + 30;
         for (let j = foes.length - 1; j >= 0 && !gone; j--) {
           const f = foes[j];
           if (Math.hypot(b.x - f.x, b.y - f.y) < f.r + 5) {
@@ -536,8 +538,8 @@
         const d = Math.hypot(b.x - pwx, b.y - pwy);
         if (alive && d < PLAYER_R) { fBullets.splice(i, 1); hitPlayer(10); continue; }
         if (alive && !b.grazed && d < GRAZE_R) { b.grazed = true; grazes++; }
-        const by2 = b.y - sc;
-        if (b.life <= 0 || b.x < -40 || b.x > gw + 40 || by2 < -40 || by2 > gh + 40) fBullets.splice(i, 1);
+        const by2 = b.y - sc, bx2 = b.x - camX;
+        if (b.life <= 0 || bx2 < -40 || bx2 > gw + 40 || by2 < -40 || by2 > gh + 40) fBullets.splice(i, 1);
       }
 
       // particles
@@ -593,9 +595,10 @@
       gctx.setTransform(gdpr, 0, 0, gdpr, 0, 0);
       gctx.clearRect(0, 0, gw, gh);
       gctx.save();
-      // entities are stored in world (page) space; shift up by the scroll so
-      // they stay pinned to the background and can scroll out of view
-      gctx.translate(shakeX, shakeY - window.scrollY);
+      // entities are stored in world space; shift by the camera (camX
+      // horizontally, scroll vertically) so they stay pinned to the world
+      // and slide out of view as the rocket moves
+      gctx.translate(shakeX - camX, shakeY - window.scrollY);
 
       for (const b of fBullets) {
         const g = gctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, 9);
@@ -646,13 +649,9 @@
         let ay = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
         let wantBoost = keys.boost;
         if (ax === 0 && ay === 0 && steering) {
-          // steer toward the pointer, but take the SHORTEST path around the
-          // horizontal seam — crossing an edge and wrapping when that's
-          // closer than flying back across the whole screen.
-          const wrapW = innerWidth + H_MARGIN * 2;
-          let dx = targetX - px;
-          dx = ((dx + wrapW / 2) % wrapW + wrapW) % wrapW - wrapW / 2;
-          const dy = targetY - py, d = Math.hypot(dx, dy);
+          // heading toward the pointer, measured from the rocket's tethered
+          // near-center position — like steering a slither.io snake.
+          const dx = targetX - px, dy = targetY - py, d = Math.hypot(dx, dy);
           if (d > 4) { ax = dx / d; ay = dy / d; }
           wantBoost = wantBoost || pointerBoost;
         }
@@ -670,11 +669,14 @@
         if (sp > maxv) { vx = vx / sp * maxv; vy = vy / sp * maxv; sp = maxv; }
         rocket.classList.toggle("is-boosting", boosting);
 
-        // horizontal: wrap around the sides — fly off one edge, reappear on
-        // the other, torus-style. No bounce, no hard boundary.
+        // horizontal: keep the rocket tethered near screen-center; overflow
+        // pans the world camera so the aliens slide past instead of the
+        // rocket flying off to the edge. No page scroll exists sideways.
         px += vx * dt;
-        const wrapW = innerWidth + H_MARGIN * 2;
-        px = ((px + H_MARGIN) % wrapW + wrapW) % wrapW - H_MARGIN;
+        const cx = innerWidth / 2;
+        const xMin = cx - H_TETHER, xMax = cx + H_TETHER;
+        if (px > xMax) { camX += px - xMax; px = xMax; }
+        else if (px < xMin) { camX -= xMin - px; px = xMin; }
 
         // vertical: stay tethered near screen-center; overflow scrolls the
         // page instead, so the world moves past the rocket, slither.io-style.
@@ -731,7 +733,7 @@
     }
 
     function resetGame() {
-      px = innerWidth / 2; py = innerHeight / 2;
+      px = innerWidth / 2; py = innerHeight / 2; camX = 0;
       vx = 0; vy = -MAXV * 0.5; rot = 0; thrust = 1;
       hp = MAXHP; alive = true; dead = false;
       gTime = 0; dist = 0; kills = 0; shots = 0; hits = 0; grazes = 0;
@@ -848,9 +850,8 @@
     window.addEventListener("resize", () => {
       if (!active) return;
       sizeGame();
-      const cy = innerHeight / 2;
-      const wrapW = innerWidth + H_MARGIN * 2;
-      px = ((px + H_MARGIN) % wrapW + wrapW) % wrapW - H_MARGIN;
+      const cx = innerWidth / 2, cy = innerHeight / 2;
+      px = clamp(px, cx - H_TETHER, cx + H_TETHER);
       py = clamp(py, cy - V_TETHER, cy + V_TETHER);
     }, { passive: true });
   })();
