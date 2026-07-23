@@ -815,6 +815,16 @@
     window.addEventListener("pointerup", endSteer);
     window.addEventListener("pointercancel", endSteer);
 
+    // Safari doesn't reliably honor preventDefault() on pointer events for
+    // scroll suppression, so also block the underlying touch gesture
+    // directly — the game already drives page scroll itself in step().
+    window.addEventListener("touchstart", (e) => {
+      if (active && !dead && !isChrome(e.target)) e.preventDefault();
+    }, { passive: false });
+    window.addEventListener("touchmove", (e) => {
+      if (active) e.preventDefault();
+    }, { passive: false });
+
     // keep things on screen / sized when the window changes
     window.addEventListener("resize", () => {
       if (!active) return;
