@@ -220,8 +220,8 @@
     const ACCEL = 2200;     // px/s^2 of thrust
     const DAMP = 2.6;       // velocity damping per second
     const MAXV = 1100;      // px/s speed cap
-    const H_MARGIN = 36 * SHIP_SCALE; // how close the rocket can get to the left/right edges
-    const V_TETHER = 100;   // vertical leash radius around screen-center — exceeding it scrolls the page instead, keeping the rocket tethered near center like slither.io
+    const H_MARGIN = 36 * SHIP_SCALE; // off-screen buffer before the rocket wraps to the opposite side
+    const V_TETHER = 70;    // vertical leash radius around screen-center — exceeding it scrolls the page instead, keeping the rocket tethered near center like slither.io
     const BOOST_ACCEL = 2;  // thrust multiplier while Shift is held
     const BOOST_MAXV = 2100; // raised speed cap while boosting
 
@@ -280,6 +280,7 @@
     ];
 
     function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+    function maxScrollY() { return Math.max(0, document.documentElement.scrollHeight - innerHeight); }
 
     function lerpAngle(a, b, t) {
       let d = ((b - a + 540) % 360) - 180;
@@ -663,14 +664,16 @@
         if (sp > maxv) { vx = vx / sp * maxv; vy = vy / sp * maxv; sp = maxv; }
         rocket.classList.toggle("is-boosting", boosting);
 
-        // horizontal: move within the viewport, soft-bounce off the sides
+        // horizontal: wrap around the sides — fly off one edge, reappear on
+        // the other, torus-style. No bounce, no hard boundary.
         px += vx * dt;
-        const xMin = H_MARGIN, xMax = innerWidth - H_MARGIN;
-        if (px < xMin) { px = xMin; vx = Math.abs(vx) * 0.4; }
-        else if (px > xMax) { px = xMax; vx = -Math.abs(vx) * 0.4; }
+        const wrapW = innerWidth + H_MARGIN * 2;
+        px = ((px + H_MARGIN) % wrapW + wrapW) % wrapW - H_MARGIN;
 
         // vertical: stay tethered near screen-center; overflow scrolls the
         // page instead, so the world moves past the rocket, slither.io-style.
+        // Hitting the top/bottom of the page wraps to the other end instead
+        // of stalling, so the whole page behaves like a torus too.
         py += vy * dt;
         const cy = innerHeight / 2;
         const yMin = cy - V_TETHER, yMax = cy + V_TETHER;
@@ -679,15 +682,15 @@
           const before = window.scrollY;
           window.scrollBy(0, over);
           const moved = window.scrollY - before;
-          py = yMax + (over - moved);
-          if (moved < over - 0.5) vy *= 0.6;
+          if (moved < over - 0.5) window.scrollTo(0, 0);
+          py = yMax;
         } else if (py < yMin) {
           const over = yMin - py;
           const before = window.scrollY;
           window.scrollBy(0, -over);
           const moved = before - window.scrollY;
-          py = yMin - (over - moved);
-          if (moved < over - 0.5) vy *= 0.6;
+          if (moved < over - 0.5) window.scrollTo(0, maxScrollY());
+          py = yMin;
         }
         py = clamp(py, 6, innerHeight - 6);
 
@@ -840,7 +843,8 @@
       if (!active) return;
       sizeGame();
       const cy = innerHeight / 2;
-      px = clamp(px, H_MARGIN, innerWidth - H_MARGIN);
+      const wrapW = innerWidth + H_MARGIN * 2;
+      px = ((px + H_MARGIN) % wrapW + wrapW) % wrapW - H_MARGIN;
       py = clamp(py, cy - V_TETHER, cy + V_TETHER);
     }, { passive: true });
   })();
