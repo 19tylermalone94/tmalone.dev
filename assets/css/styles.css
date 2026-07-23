@@ -72,16 +72,13 @@ img { display: block; max-width: 100%; }
 
 main, .nav, .foot { position: relative; z-index: 2; }
 
-/* flight mode wraps the page horizontally: .page-world gets a translateX and
-   its clone sits one page-width to the left to cover the seam */
+/* flight mode wraps the page horizontally: .page-world gets a translateX
+   that carries it fully off-screen through a loop of blank space (three
+   page-widths) before it slides back in from the other side */
 .page-world { position: relative; z-index: 2; }
 /* while flying the page is scenery: no hover effects firing as it slides
    under the cursor, no links swallowing steering input */
 html.flying .page-world { will-change: transform; pointer-events: none; }
-.page-world--clone {
-  position: absolute; top: 0; left: -100%; width: 100%;
-  pointer-events: none;
-}
 
 /* scroll progress — thin filament across the top */
 .scroll-progress {
