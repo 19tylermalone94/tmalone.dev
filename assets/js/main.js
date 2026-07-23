@@ -646,7 +646,13 @@
         let ay = (keys.down ? 1 : 0) - (keys.up ? 1 : 0);
         let wantBoost = keys.boost;
         if (ax === 0 && ay === 0 && steering) {
-          const dx = targetX - px, dy = targetY - py, d = Math.hypot(dx, dy);
+          // steer toward the pointer, but take the SHORTEST path around the
+          // horizontal seam — crossing an edge and wrapping when that's
+          // closer than flying back across the whole screen.
+          const wrapW = innerWidth + H_MARGIN * 2;
+          let dx = targetX - px;
+          dx = ((dx + wrapW / 2) % wrapW + wrapW) % wrapW - wrapW / 2;
+          const dy = targetY - py, d = Math.hypot(dx, dy);
           if (d > 4) { ax = dx / d; ay = dy / d; }
           wantBoost = wantBoost || pointerBoost;
         }
