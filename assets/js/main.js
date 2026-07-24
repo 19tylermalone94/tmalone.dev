@@ -227,9 +227,13 @@
     const BOOST_MAXV = 2100; // raised speed cap while boosting
     const FOLLOW = 9;       // camera tether stiffness (1/s) — the "elastic"
     const WRAP_LOOPS = 8;   // pillar circumference in content-widths — bigger = longer flight to reach the backside
-    const TILT_MAX = 24;      // deg — front face curves away as it nears the screen edge, instead of sliding flat
-    const BACK_TILT_MAX = 12; // deg — subtler curve on the (already turned) back face
-    const BACK_DEPTH = 1400;  // px the back face is pushed into the pillar — perspective shrinks it naturally
+    const BACK_DEPTH = 1400;   // px the back face is pushed into the pillar — perspective shrinks it naturally
+    const FACE_SLICES = 3;     // vertical strips per face — a single flat panel can only hinge (one edge near,
+                                // one far), which reads as a corner, not a cylinder; splitting it lets the centre
+                                // strip stay closest and both outer strips recede, which is what "outside a
+                                // convex pillar" actually looks like
+    const SLICE_ANGLE = 26;    // deg each strip turns per step away from centre
+    const CURVE_RADIUS = 900;  // px — how far outer strips recede as they curve away
 
     // combat tuning
     const MAXHP = 100;
@@ -296,68 +300,94 @@
     function gx(x) { return innerWidth / 2 + wd(x - camX); }
     function pageH() { return document.documentElement.scrollHeight; }
 
-    /* ---- horizontal page wrap: translate + tilt the content around a loop
-       that's mostly empty space, so the content face curves fully off-screen
-       before the next lap brings it back ---- */
+    /* ---- horizontal page wrap: the content is a face wrapped around an
+       invisible cylinder the rocket circles. The true #pageWorld stays put
+       (invisible, just driving scroll height) while flying; two decorative
+       clones — one facing forward, one turned around and pushed back —
+       carry the actual on-screen curve and slide through a loop that's
+       mostly empty space before the next lap brings each one back. ---- */
     const pillarStage = document.getElementById("pillarStage");
     const pageWorld = document.getElementById("pageWorld");
     function resetWorld() {
-      if (pageWorld) pageWorld.style.transform = "";
       if (pillarStage) pillarStage.style.perspectiveOrigin = "";
     }
-    function placeWorld() {
-      if (!pageWorld) return;
-      // centre the wrap point in the middle of the blank stretch (half a
-      // world away from the content face) so the modulo's instant jump
-      // always lands off-screen instead of popping visible content
-      const half = worldW / 2;
-      const raw = innerWidth / 2 - camX;
-      const off = (((raw + half) % worldW + worldW) % worldW) - half;
-      // a gentle rotateY keyed to how far off-centre the face currently
-      // sits — 0 dead ahead, curving away as it nears the screen edge —
-      // so the wrap reads as a surface turning, not a flat card sliding
-      const tilt = clamp(off / (innerWidth / 2), -1, 1) * -TILT_MAX;
+
+    // builds one curved face out of FACE_SLICES clipped, independently
+    // rotated clones — a single flat panel can only hinge (one edge close,
+    // the other far), which reads as the inside of a corner; strips let the
+    // centre stay closest and both edges recede, reading as a true convex
+    // cylinder face viewed from outside
+    function buildFace(isBack) {
+      if (!pillarStage || !pageWorld) return null;
+      const face = document.createElement("div");
+      face.className = "pillar-face" + (isBack ? " pillar-face--back" : " pillar-face--front");
+      face.setAttribute("aria-hidden", "true");
+      face.setAttribute("inert", "");
+      const center = (FACE_SLICES - 1) / 2;
+      for (let i = 0; i < FACE_SLICES; i++) {
+        const slice = pageWorld.cloneNode(true);
+        slice.removeAttribute("id");
+        slice.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+        slice.className = "pillar-slice";
+        const lo = (i / FACE_SLICES) * 100;
+        const hi = 100 - ((i + 1) / FACE_SLICES) * 100;
+        slice.style.clipPath = `inset(0 ${hi}% 0 ${lo}%)`;
+        slice.style.transformOrigin = `${((i + 0.5) / FACE_SLICES) * 100}% 50%`;
+        // outer strips turn away from the camera and recede symmetrically —
+        // e.g. the left strip's outer edge falls back, its inner edge (toward
+        // centre) stays forward, and the mirror image holds on the right
+        const offset = i - center;
+        const angleDeg = offset * SLICE_ANGLE;
+        const angleRad = angleDeg * Math.PI / 180;
+        const depth = -CURVE_RADIUS * (1 - Math.cos(angleRad));
+        // rotating a strip around its own centre pulls its inner edge back
+        // toward that centre (foreshortening), opening a seam against its
+        // neighbour — nudge the whole strip back outward to close it
+        const sliceW = contentW / FACE_SLICES;
+        const seamFix = offset === 0 ? 0 : -Math.sign(offset) * (sliceW / 2) * (1 - Math.cos(angleRad));
+        slice.style.transform = `translateX(${seamFix.toFixed(1)}px) translateZ(${depth.toFixed(1)}px) rotateY(${angleDeg.toFixed(1)}deg)`;
+        face.appendChild(slice);
+      }
+      pillarStage.insertBefore(face, pageWorld);
+      return face;
+    }
+    function placeFace(face, off, extraZ, extraRotDeg) {
+      if (!face) return;
       // whole pixels — fractional offsets make sliding text shimmer
-      pageWorld.style.transform = `translate3d(${Math.round(off)}px,0,0) rotateY(${tilt.toFixed(1)}deg)`;
+      face.style.transform = `translate3d(${Math.round(off)}px,0,${extraZ}px) rotateY(${extraRotDeg}deg)`;
+    }
+    // shared wrap math: centres the jump in the middle of the blank stretch
+    // (half a world away from the anchor) so the modulo's instant reset
+    // always lands off-screen instead of popping visible content
+    function wrapOffset(anchorShift) {
+      const half = worldW / 2;
+      const raw = innerWidth / 2 - camX + anchorShift;
+      return (((raw + half) % worldW + worldW) % worldW) - half;
     }
 
-    /* ---- the backside: content is a face wrapped around an invisible
-       cylinder the rocket circles. A mirrored, dimmed clone of the page sits
-       diametrically opposite (half a loop away), turned away and pushed back
-       in Z, so flying around the far side reveals the reverse of the same
-       content — smaller with real perspective falloff — instead of empty
-       void. ---- */
-    let mirrorWorld = null;
-    function buildMirror() {
-      if (!pillarStage || !pageWorld || mirrorWorld) return;
-      mirrorWorld = pageWorld.cloneNode(true);
-      mirrorWorld.removeAttribute("id");
-      mirrorWorld.className = "page-world page-world--mirror";
-      mirrorWorld.setAttribute("aria-hidden", "true");
-      mirrorWorld.setAttribute("inert", "");
-      mirrorWorld.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
-      pillarStage.insertBefore(mirrorWorld, pageWorld);
+    let frontFace = null, backFace = null;
+    function buildFaces() {
+      // clone before hiding — cloneNode copies inline style attributes too,
+      // so hiding pageWorld first would hide every slice cut from it
+      frontFace = buildFace(false);
+      backFace = buildFace(true);
+      if (pageWorld) pageWorld.style.visibility = "hidden";
     }
-    function removeMirror() {
-      if (mirrorWorld) { mirrorWorld.remove(); mirrorWorld = null; }
+    function removeFaces() {
+      if (frontFace) { frontFace.remove(); frontFace = null; }
+      if (backFace) { backFace.remove(); backFace = null; }
+      if (pageWorld) pageWorld.style.visibility = "";
     }
-    function placeMirror() {
-      if (!mirrorWorld) return;
-      const half = worldW / 2;
-      // same wrap math as placeWorld(), shifted by half a loop so the
-      // reflection lands opposite the real face
-      const raw = innerWidth / 2 - camX + half;
-      const off = (((raw + half) % worldW + worldW) % worldW) - half;
-      const tilt = clamp(off / (innerWidth / 2), -1, 1) * -BACK_TILT_MAX;
-      // turned ~180° (mirrored) plus the same edge curve, and pushed back in
-      // depth so perspective shrinks it — real optical falloff instead of a
-      // flat uniform scale
-      mirrorWorld.style.transform =
-        `translate3d(${Math.round(off)}px,0,${-BACK_DEPTH}px) rotateY(${(180 + tilt).toFixed(1)}deg)`;
+    function placeFaces() {
+      placeFace(frontFace, wrapOffset(0), 0, 0);
+      // back face sits diametrically opposite (half a loop away), turned
+      // ~180° (mirrored) and pushed back in depth so perspective shrinks it
+      // — real optical falloff instead of a flat uniform scale
+      placeFace(backFace, wrapOffset(worldW / 2), -BACK_DEPTH, 180);
     }
     function placePerspective() {
       // keep the vanishing point tracking the viewport's current vertical
-      // centre so scrolling this very tall page doesn't keystone the tilt
+      // centre so scrolling this very tall page doesn't keystone the curve
       if (pillarStage) pillarStage.style.perspectiveOrigin = `50% ${(window.scrollY + innerHeight / 2).toFixed(0)}px`;
     }
 
@@ -769,8 +799,7 @@
         if (oy > leadY) camY = ry - leadY; else if (oy < -leadY) camY = ry + leadY;
         window.scrollTo(0, clamp(camY - innerHeight / 2, 0, pageH() - innerHeight));
         placePerspective();
-        placeWorld();
-        placeMirror();
+        placeFaces();
       } else {
         sp = Math.hypot(vx, vy);
         thrust += (0 - thrust) * 0.1;
@@ -826,10 +855,9 @@
       // reveal everything so sections are already visible when the wrap
       // slides them into view
       document.querySelectorAll(".reveal, .reveal-up").forEach((el) => el.classList.add("in"));
-      buildMirror();
+      buildFaces();
       placePerspective();
-      placeWorld();
-      placeMirror();
+      placeFaces();
       try { audio(); if (actx && actx.state === "suspended") actx.resume(); } catch (e) { /* ignore */ }
       if (gcanvas) gcanvas.hidden = false;
       if (hud) hud.hidden = false;
@@ -849,7 +877,7 @@
       rocket.classList.remove("is-boosting");
       rocket.hidden = true;
       resetWorld();
-      removeMirror();
+      removeFaces();
       if (gcanvas) { gcanvas.hidden = true; if (gctx) { gctx.setTransform(1, 0, 0, 1, 0, 0); gctx.clearRect(0, 0, gcanvas.width, gcanvas.height); } }
       if (hud) hud.hidden = true;
       if (gameover) { gameover.hidden = true; gameover.classList.remove("in"); }
