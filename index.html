@@ -110,9 +110,13 @@
   </div>
 </div>
 
-<!-- pageWorld wraps everything that scrolls — flight mode translates it
-     horizontally through a loop of blank space (content + three empty
-     page-widths) for left/right wrapping -->
+<!-- pillarStage hosts the 3D perspective flight mode rotates pageWorld (and
+     its mirrored backside clone) within, so the horizontal wrap reads as a
+     banner curving around a cylinder instead of a flat slide -->
+<div id="pillarStage">
+<!-- pageWorld wraps everything that scrolls — flight mode translates and
+     tilts it horizontally through a loop of blank space for left/right
+     wrapping around the pillar -->
 <div class="page-world" id="pageWorld">
 <main>
 
@@ -591,6 +595,7 @@
   <span class="foot__name">Tyler Malone</span>
   <a href="#top" class="foot__top">Back to top ↑</a>
 </footer>
+</div>
 </div>
 
 <script src="assets/js/main.js"></script>

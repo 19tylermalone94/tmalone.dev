@@ -227,7 +227,9 @@
     const BOOST_MAXV = 2100; // raised speed cap while boosting
     const FOLLOW = 9;       // camera tether stiffness (1/s) — the "elastic"
     const WRAP_LOOPS = 8;   // pillar circumference in content-widths — bigger = longer flight to reach the backside
-    const BACK_SCALE = 0.55; // backside content is farther away (across the pillar), so it renders smaller
+    const TILT_MAX = 24;      // deg — front face curves away as it nears the screen edge, instead of sliding flat
+    const BACK_TILT_MAX = 12; // deg — subtler curve on the (already turned) back face
+    const BACK_DEPTH = 1400;  // px the back face is pushed into the pillar — perspective shrinks it naturally
 
     // combat tuning
     const MAXHP = 100;
@@ -294,12 +296,14 @@
     function gx(x) { return innerWidth / 2 + wd(x - camX); }
     function pageH() { return document.documentElement.scrollHeight; }
 
-    /* ---- horizontal page wrap: translate the content around a loop that's
-       mostly empty space, so the content face slides fully off-screen
+    /* ---- horizontal page wrap: translate + tilt the content around a loop
+       that's mostly empty space, so the content face curves fully off-screen
        before the next lap brings it back ---- */
+    const pillarStage = document.getElementById("pillarStage");
     const pageWorld = document.getElementById("pageWorld");
     function resetWorld() {
       if (pageWorld) pageWorld.style.transform = "";
+      if (pillarStage) pillarStage.style.perspectiveOrigin = "";
     }
     function placeWorld() {
       if (!pageWorld) return;
@@ -309,24 +313,30 @@
       const half = worldW / 2;
       const raw = innerWidth / 2 - camX;
       const off = (((raw + half) % worldW + worldW) % worldW) - half;
+      // a gentle rotateY keyed to how far off-centre the face currently
+      // sits — 0 dead ahead, curving away as it nears the screen edge —
+      // so the wrap reads as a surface turning, not a flat card sliding
+      const tilt = clamp(off / (innerWidth / 2), -1, 1) * TILT_MAX;
       // whole pixels — fractional offsets make sliding text shimmer
-      pageWorld.style.transform = `translate3d(${Math.round(off)}px,0,0)`;
+      pageWorld.style.transform = `translate3d(${Math.round(off)}px,0,0) rotateY(${tilt.toFixed(1)}deg)`;
     }
 
     /* ---- the backside: content is a face wrapped around an invisible
        cylinder the rocket circles. A mirrored, dimmed clone of the page sits
-       diametrically opposite (half a loop away) so flying around the far
-       side reveals the reverse of the same content instead of empty void. ---- */
+       diametrically opposite (half a loop away), turned away and pushed back
+       in Z, so flying around the far side reveals the reverse of the same
+       content — smaller with real perspective falloff — instead of empty
+       void. ---- */
     let mirrorWorld = null;
     function buildMirror() {
-      if (!pageWorld || mirrorWorld) return;
+      if (!pillarStage || !pageWorld || mirrorWorld) return;
       mirrorWorld = pageWorld.cloneNode(true);
       mirrorWorld.removeAttribute("id");
       mirrorWorld.className = "page-world page-world--mirror";
       mirrorWorld.setAttribute("aria-hidden", "true");
       mirrorWorld.setAttribute("inert", "");
       mirrorWorld.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
-      pageWorld.parentNode.insertBefore(mirrorWorld, pageWorld);
+      pillarStage.insertBefore(mirrorWorld, pageWorld);
     }
     function removeMirror() {
       if (mirrorWorld) { mirrorWorld.remove(); mirrorWorld = null; }
@@ -338,12 +348,17 @@
       // reflection lands opposite the real face
       const raw = innerWidth / 2 - camX + half;
       const off = (((raw + half) % worldW + worldW) % worldW) - half;
-      // shrink around the viewport's current vertical centre (not the tall
-      // page's own centre) so the far side scales down in place as you pass it
-      const originY = window.scrollY + innerHeight / 2;
-      mirrorWorld.style.transformOrigin = `50% ${originY.toFixed(0)}px`;
+      const tilt = clamp(off / (innerWidth / 2), -1, 1) * BACK_TILT_MAX;
+      // turned ~180° (mirrored) plus the same edge curve, and pushed back in
+      // depth so perspective shrinks it — real optical falloff instead of a
+      // flat uniform scale
       mirrorWorld.style.transform =
-        `translate3d(${Math.round(off)}px,0,0) scale(${-BACK_SCALE},${BACK_SCALE})`;
+        `translate3d(${Math.round(off)}px,0,${-BACK_DEPTH}px) rotateY(${(180 + tilt).toFixed(1)}deg)`;
+    }
+    function placePerspective() {
+      // keep the vanishing point tracking the viewport's current vertical
+      // centre so scrolling this very tall page doesn't keystone the tilt
+      if (pillarStage) pillarStage.style.perspectiveOrigin = `50% ${(window.scrollY + innerHeight / 2).toFixed(0)}px`;
     }
 
     /* ---- tiny WebAudio blips (created on first gesture) ---- */
@@ -753,6 +768,7 @@
         if (ox > leadX) camX = wmod(rx - leadX); else if (ox < -leadX) camX = wmod(rx + leadX);
         if (oy > leadY) camY = ry - leadY; else if (oy < -leadY) camY = ry + leadY;
         window.scrollTo(0, clamp(camY - innerHeight / 2, 0, pageH() - innerHeight));
+        placePerspective();
         placeWorld();
         placeMirror();
       } else {
@@ -811,6 +827,7 @@
       // slides them into view
       document.querySelectorAll(".reveal, .reveal-up").forEach((el) => el.classList.add("in"));
       buildMirror();
+      placePerspective();
       placeWorld();
       placeMirror();
       try { audio(); if (actx && actx.state === "suspended") actx.resume(); } catch (e) { /* ignore */ }

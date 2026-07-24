@@ -72,18 +72,29 @@ img { display: block; max-width: 100%; }
 
 main, .nav, .foot { position: relative; z-index: 2; }
 
+/* pillarStage hosts the 3D perspective that flight mode rotates the page
+   within, so the horizontal wrap curves like a banner around a cylinder
+   instead of sliding as a flat card. perspective-origin is kept tracking
+   the viewport's vertical centre from JS (see placePerspective()) so the
+   vanishing point doesn't drift as the page scrolls. */
+#pillarStage { position: relative; }
+html.flying #pillarStage { perspective: 1600px; }
+
 /* flight mode wraps the page horizontally: .page-world gets a translateX
-   that carries it fully off-screen through a loop of blank space before it
-   slides back in from the other side */
+   + a gentle rotateY that carries it fully off-screen through a loop of
+   blank space before it slides back in from the other side */
 .page-world { position: relative; z-index: 2; }
 /* while flying the page is scenery: no hover effects firing as it slides
    under the cursor, no links swallowing steering input */
 html.flying .page-world { will-change: transform; pointer-events: none; }
+.page-world, .page-world--mirror { backface-visibility: visible; }
 
 /* the backside of the pillar: a mirrored, dimmed clone of the page built
-   only while flying, parked half a wrap-loop away from the real content so
-   circling around the far side shows the reverse of the same banner instead
-   of empty space. Purely decorative scenery — inert and out of flow. */
+   only while flying, parked half a wrap-loop away from the real content and
+   turned away (rotateY + pushed back in Z) so circling around the far side
+   shows the reverse of the same banner, smaller with real perspective
+   falloff, instead of empty space. Purely decorative scenery — inert and
+   out of flow. */
 .page-world--mirror {
   position: absolute;
   top: 0; left: 0; width: 100%;
