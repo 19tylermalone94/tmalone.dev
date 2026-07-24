@@ -1097,7 +1097,7 @@
       sharks = [{ frac: rand(0.89, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.012, 0.02), s: rand(1.0, 1.25), wob: rand(0, 6.28) }];
       gore = [];
       // boat — drifts along the sea surface
-      boats = [{ x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.006, 0.012), ph: rand(0, 6.28) }];
+      boats = [{ x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.0015, 0.003), ph: rand(0, 6.28) }];
       // whale — a lone giant gliding through the deep
       whales = [{ frac: rand(0.91, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.003, 0.0055), s: rand(1.0, 1.3), wob: rand(0, 6.28) }];
       // bubbles
@@ -1108,7 +1108,7 @@
       // birds
       birds = [];
       for (let i = 0; i < 6 * WORLD_SPAN; i++) {
-        birds.push({ frac: rand(0.6, 0.76), x: rand(0, 1), spd: rand(0.01, 0.03), s: rand(0.8, 1.6), ph: rand(0, 6.28) });
+        birds.push({ frac: rand(0.6, 0.76), x: rand(0, 1), spd: rand(0.002, 0.006), s: rand(0.8, 1.6), ph: rand(0, 6.28) });
       }
       // airplanes — high altitude, between space and the clouds
       planes = [];
