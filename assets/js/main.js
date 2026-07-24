@@ -316,7 +316,7 @@
       // a gentle rotateY keyed to how far off-centre the face currently
       // sits — 0 dead ahead, curving away as it nears the screen edge —
       // so the wrap reads as a surface turning, not a flat card sliding
-      const tilt = clamp(off / (innerWidth / 2), -1, 1) * TILT_MAX;
+      const tilt = clamp(off / (innerWidth / 2), -1, 1) * -TILT_MAX;
       // whole pixels — fractional offsets make sliding text shimmer
       pageWorld.style.transform = `translate3d(${Math.round(off)}px,0,0) rotateY(${tilt.toFixed(1)}deg)`;
     }
@@ -348,7 +348,7 @@
       // reflection lands opposite the real face
       const raw = innerWidth / 2 - camX + half;
       const off = (((raw + half) % worldW + worldW) % worldW) - half;
-      const tilt = clamp(off / (innerWidth / 2), -1, 1) * BACK_TILT_MAX;
+      const tilt = clamp(off / (innerWidth / 2), -1, 1) * -BACK_TILT_MAX;
       // turned ~180° (mirrored) plus the same edge curve, and pushed back in
       // depth so perspective shrinks it — real optical falloff instead of a
       // flat uniform scale
