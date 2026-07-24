@@ -219,6 +219,8 @@
     const gameover = document.getElementById("gameover");
     const goSub = document.getElementById("goSub");
     const goStats = document.getElementById("goStats");
+    const goName = document.getElementById("goName");
+    const goBoards = document.getElementById("goBoards");
     const goAch = document.getElementById("goAch");
     const goAgain = document.getElementById("goAgain");
     const goClose = document.getElementById("goClose");
@@ -473,6 +475,54 @@
       } catch (e) { /* ignore */ }
     }
 
+    /* ---- global leaderboards ---- */
+    let runSubmitted = false; // one submit per run, even if initials are edited
+    function getName() {
+      try { return localStorage.getItem("tm_name") || ""; } catch (e) { return ""; }
+    }
+    async function submitScore() {
+      const name = getName();
+      if (runSubmitted || !name) return; // wait for initials on a first-ever run
+      runSubmitted = true;
+      try {
+        await fetch("/api/score", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, time: gTime, kills, distance: dist }),
+        });
+      } catch (e) { runSubmitted = false; } // let a later edit retry
+      loadBoards();
+    }
+    const BOARD_META = [
+      { key: "time", label: "Longest", fmt: (v) => v.toFixed(1) + "s" },
+      { key: "kills", label: "Most kills", fmt: (v) => String(Math.round(v)) },
+      { key: "distance", label: "Farthest", fmt: (v) => Math.round(v).toLocaleString() },
+    ];
+    async function loadBoards() {
+      if (!goBoards) return;
+      let data;
+      try { data = await (await fetch("/api/leaderboard")).json(); }
+      catch (e) { goBoards.innerHTML = `<div class="board__err">Leaderboards offline.</div>`; return; }
+      const mine = getName();
+      goBoards.innerHTML = BOARD_META.map((m) => {
+        const rows = (data[m.key] || []).slice(0, 10).map((r, i) =>
+          `<li${r.name === mine ? ' class="is-me"' : ""}><span class="board__rank">${i + 1}</span><span class="board__who">${r.name}</span><span class="board__val">${m.fmt(r.score)}</span></li>`
+        ).join("") || `<li class="board__empty">No scores yet</li>`;
+        return `<div class="board"><h4>${m.label}</h4><ol>${rows}</ol></div>`;
+      }).join("");
+    }
+    if (goName) {
+      goName.value = getName();
+      const commit = () => {
+        const v = goName.value.replace(/[^\w]/g, "").toUpperCase().slice(0, 3);
+        goName.value = v;
+        try { localStorage.setItem("tm_name", v); } catch (e) { /* ignore */ }
+        if (v) submitScore();
+      };
+      goName.addEventListener("change", commit);
+      goName.addEventListener("keydown", (e) => { if (e.key === "Enter") { commit(); goName.blur(); } });
+    }
+
     /* ---- achievements ---- */
     function checkAch() {
       const snap = {
@@ -542,6 +592,8 @@
           goAch.innerHTML = `<div class="gameover__ach-title">No medals this run — get back out there.</div>`;
         }
       }
+      submitScore(); // submits if initials are known; otherwise waits for entry
+      loadBoards();
       gameover.hidden = false;
       requestAnimationFrame(() => gameover.classList.add("in"));
     }
@@ -821,6 +873,7 @@
       gTime = 0; dist = 0; kills = 0; shots = 0; hits = 0; grazes = 0;
       noHit = 0; topSpeed = 0; dmgTaken = 0;
       reachedBottom = false; lowHpFlag = false; newBestTime = false; newBestKills = false;
+      runSubmitted = false;
       foes = []; pBullets = []; fBullets = []; parts = [];
       spawnT = 0.6; fireT = 0; shake = 0; shakeX = 0; shakeY = 0;
       unlocked.clear(); earned.length = 0;

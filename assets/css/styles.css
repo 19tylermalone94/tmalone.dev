@@ -330,6 +330,26 @@ html.flying #pageWorld { visibility: hidden; }
 .gostat span { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-mute); }
 .gostat.is-best { border-color: rgba(233,201,135,0.5); box-shadow: 0 0 18px rgba(233,201,135,0.18); }
 .gostat em { display: block; color: var(--gold); font-style: normal; font-size: .58rem; margin-top: .15rem; letter-spacing: .08em; }
+.gameover__name { display: flex; align-items: center; justify-content: center; gap: .6rem; margin-bottom: 1.1rem; }
+.gameover__name label { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--text-mute); }
+.gameover__name input {
+  width: 4.5rem; text-align: center; font-family: var(--f-mono); font-size: 1.1rem; letter-spacing: .12em;
+  text-transform: uppercase; padding: .25rem .3rem; border-radius: 6px; color: var(--star);
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.15);
+}
+.gameover__name input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 12px rgba(127,214,232,0.3); }
+.gameover__boards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .6rem; margin-bottom: 1.2rem; }
+.board { text-align: left; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: .55rem .5rem; }
+.board h4 { font-size: .62rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mute); margin: 0 0 .4rem; text-align: center; }
+.board ol { list-style: none; margin: 0; padding: 0; }
+.board li { display: flex; align-items: baseline; gap: .35rem; font-size: .68rem; padding: .1rem 0; color: var(--text-dim); }
+.board li.is-me { color: var(--gold); }
+.board__rank { width: 1.1rem; color: var(--text-mute); font-family: var(--f-mono); }
+.board__who { flex: 1; font-family: var(--f-mono); letter-spacing: .04em; overflow: hidden; text-overflow: ellipsis; }
+.board__val { font-family: var(--f-mono); color: var(--star); }
+.board li.is-me .board__val { color: var(--gold); }
+.board__empty, .board__err { color: var(--text-mute); font-size: .64rem; font-style: italic; }
+@media (max-width: 520px) { .gameover__boards { grid-template-columns: 1fr; } }
 .gameover__ach { margin-bottom: 1.3rem; }
 .gameover__ach-title {
   font-size: .72rem; text-transform: uppercase; letter-spacing: .05em;
