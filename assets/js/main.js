@@ -358,10 +358,15 @@
     }
     // shared wrap math: centres the jump in the middle of the blank stretch
     // (half a world away from the anchor) so the modulo's instant reset
-    // always lands off-screen instead of popping visible content
-    function wrapOffset(anchorShift) {
+    // always lands off-screen instead of popping visible content.
+    // dir flips which way the face slides as camX changes: the back face is
+    // a mirror image of the front (rotateY 180), and a mirror reverses
+    // apparent scroll direction along with left/right, not just the letter
+    // shapes — without this the back slid the same way the front did,
+    // which is why it read as scrolling backwards.
+    function wrapOffset(anchorShift, dir) {
       const half = worldW / 2;
-      const raw = innerWidth / 2 - camX + anchorShift;
+      const raw = dir * (camX - innerWidth / 2) + anchorShift;
       return (((raw + half) % worldW + worldW) % worldW) - half;
     }
 
@@ -379,11 +384,11 @@
       if (pageWorld) pageWorld.style.visibility = "";
     }
     function placeFaces() {
-      placeFace(frontFace, wrapOffset(0), 0, 0);
+      placeFace(frontFace, wrapOffset(0, -1), 0, 0);
       // back face sits diametrically opposite (half a loop away), turned
       // ~180° (mirrored) and pushed back in depth so perspective shrinks it
       // — real optical falloff instead of a flat uniform scale
-      placeFace(backFace, wrapOffset(worldW / 2), -BACK_DEPTH, 180);
+      placeFace(backFace, wrapOffset(worldW / 2, 1), -BACK_DEPTH, 180);
     }
     function placePerspective() {
       // keep the vanishing point tracking the viewport's current vertical
