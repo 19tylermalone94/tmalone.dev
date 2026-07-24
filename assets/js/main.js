@@ -187,12 +187,14 @@
      Flight mode → COSMIC SKIRMISH — slither-style controls: the
      rocket lives in world space and the camera chases it with a
      soft tether. Vertically the camera drives the page scroll
-     (hard top/bottom bounds); horizontally the page content wraps
-     around a loop of empty space three page-widths wide, so the
-     content face slides fully off-screen before it reappears on
-     the other side — like flying around a prism with one content
-     face and three blank ones. Hold click/touch to steer and
-     shoot toward the pointer; WASD/arrows still work.
+     (hard top/bottom bounds); horizontally the content sits on the
+     front face of an invisible cylinder the rocket circles. A dimmed,
+     mirrored clone of the page hangs on the back face, half a loop
+     away, so flying around the far side reveals the reverse of the
+     same content — like circling a pillar with a banner wrapped
+     around it — before the front face slides back into view. Hold
+     click/touch to steer and shoot toward the pointer; WASD/arrows
+     still work.
      ============================================================ */
   (function flight() {
     const btn = document.getElementById("flyBtn");
@@ -224,6 +226,8 @@
     const BOOST_ACCEL = 2;  // thrust multiplier while Shift is held
     const BOOST_MAXV = 2100; // raised speed cap while boosting
     const FOLLOW = 9;       // camera tether stiffness (1/s) — the "elastic"
+    const WRAP_LOOPS = 8;   // pillar circumference in content-widths — bigger = longer flight to reach the backside
+    const BACK_DEPTH = 1400;   // px the back face is pushed into the pillar — perspective shrinks it naturally
 
     // combat tuning
     const MAXHP = 100;
@@ -290,23 +294,77 @@
     function gx(x) { return innerWidth / 2 + wd(x - camX); }
     function pageH() { return document.documentElement.scrollHeight; }
 
-    /* ---- horizontal page wrap: translate the content around a loop that's
-       mostly empty space, so the content face slides fully off-screen
-       before the next lap brings it back ---- */
+    /* ---- horizontal page wrap: the content is a face wrapped around an
+       invisible cylinder the rocket circles. The true #pageWorld stays put
+       (invisible, just driving scroll height) while flying; two flat
+       decorative clones — one facing forward, one turned around and pushed
+       back — carry the actual on-screen content and slide through a loop
+       that's mostly empty space before the next lap brings each one back.
+       (An earlier version split each face into rotated strips to fake a
+       curve, but the seams between strips read as broken/fragmented rather
+       than curved, so each face is a single flat plane again — still tilted
+       as a whole via the pillar's perspective, just without the strip
+       joints.) ---- */
+    const pillarStage = document.getElementById("pillarStage");
     const pageWorld = document.getElementById("pageWorld");
     function resetWorld() {
-      if (pageWorld) pageWorld.style.transform = "";
+      if (pillarStage) pillarStage.style.perspectiveOrigin = "";
     }
-    function placeWorld() {
-      if (!pageWorld) return;
-      // centre the wrap point in the middle of the blank stretch (half a
-      // world away from the content face) so the modulo's instant jump
-      // always lands off-screen instead of popping visible content
-      const half = worldW / 2;
-      const raw = innerWidth / 2 - camX;
-      const off = (((raw + half) % worldW + worldW) % worldW) - half;
+
+    function buildFace(isBack) {
+      if (!pillarStage || !pageWorld) return null;
+      const face = pageWorld.cloneNode(true);
+      face.removeAttribute("id");
+      face.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+      face.className = "pillar-face" + (isBack ? " pillar-face--back" : " pillar-face--front");
+      face.setAttribute("aria-hidden", "true");
+      face.setAttribute("inert", "");
+      pillarStage.insertBefore(face, pageWorld);
+      return face;
+    }
+    function placeFace(face, off, extraZ, extraRotDeg) {
+      if (!face) return;
       // whole pixels — fractional offsets make sliding text shimmer
-      pageWorld.style.transform = `translate3d(${Math.round(off)}px,0,0)`;
+      face.style.transform = `translate3d(${Math.round(off)}px,0,${extraZ}px) rotateY(${extraRotDeg}deg)`;
+    }
+    // shared wrap math: centres the jump in the middle of the blank stretch
+    // (half a world away from the anchor) so the modulo's instant reset
+    // always lands off-screen instead of popping visible content.
+    // dir flips which way the face slides as camX changes: the back face is
+    // a mirror image of the front (rotateY 180), and a mirror reverses
+    // apparent scroll direction along with left/right, not just the letter
+    // shapes — without this the back slid the same way the front did,
+    // which is why it read as scrolling backwards.
+    function wrapOffset(anchorShift, dir) {
+      const half = worldW / 2;
+      const raw = dir * (camX - innerWidth / 2) + anchorShift;
+      return (((raw + half) % worldW + worldW) % worldW) - half;
+    }
+
+    let frontFace = null, backFace = null;
+    function buildFaces() {
+      // clone before hiding — cloneNode copies inline style attributes too,
+      // so hiding pageWorld first would hide every slice cut from it
+      frontFace = buildFace(false);
+      backFace = buildFace(true);
+      if (pageWorld) pageWorld.style.visibility = "hidden";
+    }
+    function removeFaces() {
+      if (frontFace) { frontFace.remove(); frontFace = null; }
+      if (backFace) { backFace.remove(); backFace = null; }
+      if (pageWorld) pageWorld.style.visibility = "";
+    }
+    function placeFaces() {
+      placeFace(frontFace, wrapOffset(0, -1), 0, 0);
+      // back face sits diametrically opposite (half a loop away), turned
+      // ~180° (mirrored) and pushed back in depth so perspective shrinks it
+      // — real optical falloff instead of a flat uniform scale
+      placeFace(backFace, wrapOffset(worldW / 2, 1), -BACK_DEPTH, 180);
+    }
+    function placePerspective() {
+      // keep the vanishing point tracking the viewport's current vertical
+      // centre so scrolling this very tall page doesn't keystone the curve
+      if (pillarStage) pillarStage.style.perspectiveOrigin = `50% ${(window.scrollY + innerHeight / 2).toFixed(0)}px`;
     }
 
     /* ---- tiny WebAudio blips (created on first gesture) ---- */
@@ -716,7 +774,8 @@
         if (ox > leadX) camX = wmod(rx - leadX); else if (ox < -leadX) camX = wmod(rx + leadX);
         if (oy > leadY) camY = ry - leadY; else if (oy < -leadY) camY = ry + leadY;
         window.scrollTo(0, clamp(camY - innerHeight / 2, 0, pageH() - innerHeight));
-        placeWorld();
+        placePerspective();
+        placeFaces();
       } else {
         sp = Math.hypot(vx, vy);
         thrust += (0 - thrust) * 0.1;
@@ -732,7 +791,7 @@
 
     function sizeGame() {
       contentW = document.documentElement.clientWidth;
-      worldW = contentW * 4;   // wrap period: content + three blank page-widths
+      worldW = contentW * WRAP_LOOPS;   // wrap period: content + wide blank stretches around the pillar
       if (!gcanvas) return;
       gdpr = Math.min(window.devicePixelRatio || 1, 2);
       gw = innerWidth; gh = innerHeight;
@@ -772,7 +831,9 @@
       // reveal everything so sections are already visible when the wrap
       // slides them into view
       document.querySelectorAll(".reveal, .reveal-up").forEach((el) => el.classList.add("in"));
-      placeWorld();
+      buildFaces();
+      placePerspective();
+      placeFaces();
       try { audio(); if (actx && actx.state === "suspended") actx.resume(); } catch (e) { /* ignore */ }
       if (gcanvas) gcanvas.hidden = false;
       if (hud) hud.hidden = false;
@@ -792,6 +853,7 @@
       rocket.classList.remove("is-boosting");
       rocket.hidden = true;
       resetWorld();
+      removeFaces();
       if (gcanvas) { gcanvas.hidden = true; if (gctx) { gctx.setTransform(1, 0, 0, 1, 0, 0); gctx.clearRect(0, 0, gcanvas.width, gcanvas.height); } }
       if (hud) hud.hidden = true;
       if (gameover) { gameover.hidden = true; gameover.classList.remove("in"); }
