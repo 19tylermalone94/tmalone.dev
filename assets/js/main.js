@@ -226,6 +226,8 @@
     const BOOST_ACCEL = 2;  // thrust multiplier while Shift is held
     const BOOST_MAXV = 2100; // raised speed cap while boosting
     const FOLLOW = 9;       // camera tether stiffness (1/s) — the "elastic"
+    const WRAP_LOOPS = 8;   // pillar circumference in content-widths — bigger = longer flight to reach the backside
+    const BACK_SCALE = 0.55; // backside content is farther away (across the pillar), so it renders smaller
 
     // combat tuning
     const MAXHP = 100;
@@ -336,7 +338,12 @@
       // reflection lands opposite the real face
       const raw = innerWidth / 2 - camX + half;
       const off = (((raw + half) % worldW + worldW) % worldW) - half;
-      mirrorWorld.style.transform = `translate3d(${Math.round(off)}px,0,0) scaleX(-1)`;
+      // shrink around the viewport's current vertical centre (not the tall
+      // page's own centre) so the far side scales down in place as you pass it
+      const originY = window.scrollY + innerHeight / 2;
+      mirrorWorld.style.transformOrigin = `50% ${originY.toFixed(0)}px`;
+      mirrorWorld.style.transform =
+        `translate3d(${Math.round(off)}px,0,0) scale(${-BACK_SCALE},${BACK_SCALE})`;
     }
 
     /* ---- tiny WebAudio blips (created on first gesture) ---- */
@@ -763,7 +770,7 @@
 
     function sizeGame() {
       contentW = document.documentElement.clientWidth;
-      worldW = contentW * 4;   // wrap period: content + three blank page-widths
+      worldW = contentW * WRAP_LOOPS;   // wrap period: content + wide blank stretches around the pillar
       if (!gcanvas) return;
       gdpr = Math.min(window.devicePixelRatio || 1, 2);
       gw = innerWidth; gh = innerHeight;
