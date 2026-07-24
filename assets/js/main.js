@@ -433,7 +433,9 @@
       shots++;
       const rad = rot * Math.PI / 180;
       const dx = Math.sin(rad), dy = -Math.cos(rad);
-      pBullets.push({ x: wmod(rx + dx * 28 * RSCALE), y: ry + dy * 28 * RSCALE, vx: dx * BULLET_V + vx * 0.3, vy: dy * BULLET_V + vy * 0.3, life: 1.1 });
+      // inherit the ship's full velocity (relativity): the muzzle speed rides on
+      // top of the ship's, so a shot always pulls ahead by BULLET_V even at boost
+      pBullets.push({ x: wmod(rx + dx * 28 * RSCALE), y: ry + dy * 28 * RSCALE, vx: dx * BULLET_V + vx, vy: dy * BULLET_V + vy, life: 1.1 });
       vx -= dx * 26; vy -= dy * 26;            // gentle recoil
       beep(660, 0.07, "square", 0.025, 240);
     }
@@ -1084,20 +1086,20 @@
       // drifting sky clouds (frac = where in the descent they live)
       clouds = [];
       for (let i = 0; i < 16 * WORLD_SPAN; i++) {
-        clouds.push({ frac: rand(0.5, 0.72), x: rand(-0.1, 1.1), w: rand(0.16, 0.34), spd: rand(0.004, 0.018) * (Math.random() < 0.5 ? -1 : 1), depth: rand(0.4, 1), img: (Math.random() * cloudImgs.length) | 0 });
+        clouds.push({ frac: rand(0.5, 0.72), x: rand(-0.1, 1.1), w: rand(0.16, 0.34), spd: rand(0.0008, 0.0035) * (Math.random() < 0.5 ? -1 : 1), depth: rand(0.4, 1), img: (Math.random() * cloudImgs.length) | 0 });
       }
       // fish (underwater)
       fish = [];
       for (let i = 0; i < 28 * WORLD_SPAN; i++) {
-        fish.push({ frac: rand(0.88, 0.99), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.02, 0.06), s: rand(0.7, 1.5), img: (Math.random() * fishImgs.length) | 0, wob: rand(0, 6.28) });
+        fish.push({ frac: rand(0.88, 0.99), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.005, 0.015), s: rand(0.7, 1.5), img: (Math.random() * fishImgs.length) | 0, wob: rand(0, 6.28) });
       }
       // shark — a single roaming predator
-      sharks = [{ frac: rand(0.89, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.05, 0.08), s: rand(1.0, 1.25), wob: rand(0, 6.28) }];
+      sharks = [{ frac: rand(0.89, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.012, 0.02), s: rand(1.0, 1.25), wob: rand(0, 6.28) }];
       gore = [];
       // boat — drifts along the sea surface
-      boats = [{ x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.006, 0.012), ph: rand(0, 6.28) }];
+      boats = [{ x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.0015, 0.003), ph: rand(0, 6.28) }];
       // whale — a lone giant gliding through the deep
-      whales = [{ frac: rand(0.91, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.012, 0.022), s: rand(1.0, 1.3), wob: rand(0, 6.28) }];
+      whales = [{ frac: rand(0.91, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.003, 0.0055), s: rand(1.0, 1.3), wob: rand(0, 6.28) }];
       // bubbles
       bubbles = [];
       for (let i = 0; i < 40 * WORLD_SPAN; i++) {
@@ -1106,12 +1108,12 @@
       // birds
       birds = [];
       for (let i = 0; i < 6 * WORLD_SPAN; i++) {
-        birds.push({ frac: rand(0.6, 0.76), x: rand(0, 1), spd: rand(0.01, 0.03), s: rand(0.8, 1.6), ph: rand(0, 6.28) });
+        birds.push({ frac: rand(0.6, 0.76), x: rand(0, 1), spd: rand(0.002, 0.006), s: rand(0.8, 1.6), ph: rand(0, 6.28) });
       }
       // airplanes — high altitude, between space and the clouds
       planes = [];
       for (let i = 0; i < 3 * WORLD_SPAN; i++) {
-        planes.push({ frac: rand(0.36, 0.52), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.02, 0.045), s: rand(0.7, 1.1), wob: rand(0, 6.28) });
+        planes.push({ frac: rand(0.36, 0.52), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.004, 0.009), s: rand(0.7, 1.1), wob: rand(0, 6.28) });
       }
       // sea-floor flora — kelp + coral on the ocean bed
       flora = [];
@@ -1627,10 +1629,14 @@
         const floorA = band(p, 0.93, 1.0, 0.04, 0.0);
         if (floorA > 0.01) {
           const fl = fy(0.99, 7);
-          const floorY = (fx) => fl + Math.sin(fx * 0.05) * BH * 0.03;
+          // whole number of sine cycles across BW so the floor height matches at
+          // the wrap edge (x=0 == x=BW) — otherwise the join shows a step seam
+          const floorK = (2 * Math.PI * Math.max(1, Math.round(BW * 0.05 / (2 * Math.PI)))) / BW;
+          const floorY = (fx) => fl + Math.sin(fx * floorK) * BH * 0.03;
           bx.fillStyle = rgb([10, 30, 36], floorA);
           bx.beginPath(); bx.moveTo(0, BH);
           for (let x = 0; x <= BW; x += 3) bx.lineTo(x, floorY(x));
+          bx.lineTo(BW, floorY(BW));   // land the top edge exactly on the right edge (BW may not be a multiple of 3)
           bx.lineTo(BW, BH); bx.closePath(); bx.fill();
           // kelp first (taller, behind), then coral nestled in front
           for (const o of flora) {
@@ -1648,15 +1654,16 @@
 
       // ---- blit → screen (pixelated) ----
       // show one screen-width window (SBW) of the wide panorama, sliding it once
-      // around per lap. src is continuous mod BW, so the wrap is seamless; a
-      // second draw fills the seam when the window straddles the buffer edge.
+      // around per lap. When the window straddles the buffer edge it takes two
+      // draws; the join is snapped to an INTEGER screen pixel so the two segments
+      // meet edge-to-edge with no fractional-pixel hairline (smoothing is off).
       ctx.clearRect(0, 0, W, H);
       const src = (((-orbitFrac * BW) % BW) + BW) % BW;   // window start in buffer px, 0..BW
-      const w1 = Math.min(SBW, BW - src);                 // width before wrap
-      ctx.drawImage(buf, src, 0, w1, BH, 0, 0, (w1 / SBW) * W, H);
+      const w1 = Math.min(SBW, BW - src);                 // buffer width before wrap
+      const splitX = Math.round((w1 / SBW) * W);          // integer screen-x of the join
+      ctx.drawImage(buf, src, 0, w1, BH, 0, 0, splitX, H);
       if (w1 < SBW) {
-        const w2 = SBW - w1;
-        ctx.drawImage(buf, 0, 0, w2, BH, (w1 / SBW) * W, 0, (w2 / SBW) * W, H);
+        ctx.drawImage(buf, 0, 0, SBW - w1, BH, splitX, 0, W - splitX, H);
       }
 
       // ---- subtle vignette (screen space, over the blitted window) ----
