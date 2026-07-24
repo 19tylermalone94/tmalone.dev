@@ -228,12 +228,6 @@
     const FOLLOW = 9;       // camera tether stiffness (1/s) — the "elastic"
     const WRAP_LOOPS = 8;   // pillar circumference in content-widths — bigger = longer flight to reach the backside
     const BACK_DEPTH = 1400;   // px the back face is pushed into the pillar — perspective shrinks it naturally
-    const FACE_SLICES = 3;     // vertical strips per face — a single flat panel can only hinge (one edge near,
-                                // one far), which reads as a corner, not a cylinder; splitting it lets the centre
-                                // strip stay closest and both outer strips recede, which is what "outside a
-                                // convex pillar" actually looks like
-    const SLICE_ANGLE = 26;    // deg each strip turns per step away from centre
-    const CURVE_RADIUS = 900;  // px — how far outer strips recede as they curve away
 
     // combat tuning
     const MAXHP = 100;
@@ -302,52 +296,29 @@
 
     /* ---- horizontal page wrap: the content is a face wrapped around an
        invisible cylinder the rocket circles. The true #pageWorld stays put
-       (invisible, just driving scroll height) while flying; two decorative
-       clones — one facing forward, one turned around and pushed back —
-       carry the actual on-screen curve and slide through a loop that's
-       mostly empty space before the next lap brings each one back. ---- */
+       (invisible, just driving scroll height) while flying; two flat
+       decorative clones — one facing forward, one turned around and pushed
+       back — carry the actual on-screen content and slide through a loop
+       that's mostly empty space before the next lap brings each one back.
+       (An earlier version split each face into rotated strips to fake a
+       curve, but the seams between strips read as broken/fragmented rather
+       than curved, so each face is a single flat plane again — still tilted
+       as a whole via the pillar's perspective, just without the strip
+       joints.) ---- */
     const pillarStage = document.getElementById("pillarStage");
     const pageWorld = document.getElementById("pageWorld");
     function resetWorld() {
       if (pillarStage) pillarStage.style.perspectiveOrigin = "";
     }
 
-    // builds one curved face out of FACE_SLICES clipped, independently
-    // rotated clones — a single flat panel can only hinge (one edge close,
-    // the other far), which reads as the inside of a corner; strips let the
-    // centre stay closest and both edges recede, reading as a true convex
-    // cylinder face viewed from outside
     function buildFace(isBack) {
       if (!pillarStage || !pageWorld) return null;
-      const face = document.createElement("div");
+      const face = pageWorld.cloneNode(true);
+      face.removeAttribute("id");
+      face.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
       face.className = "pillar-face" + (isBack ? " pillar-face--back" : " pillar-face--front");
       face.setAttribute("aria-hidden", "true");
       face.setAttribute("inert", "");
-      const center = (FACE_SLICES - 1) / 2;
-      for (let i = 0; i < FACE_SLICES; i++) {
-        const slice = pageWorld.cloneNode(true);
-        slice.removeAttribute("id");
-        slice.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
-        slice.className = "pillar-slice";
-        const lo = (i / FACE_SLICES) * 100;
-        const hi = 100 - ((i + 1) / FACE_SLICES) * 100;
-        slice.style.clipPath = `inset(0 ${hi}% 0 ${lo}%)`;
-        slice.style.transformOrigin = `${((i + 0.5) / FACE_SLICES) * 100}% 50%`;
-        // outer strips turn away from the camera and recede symmetrically —
-        // e.g. the left strip's outer edge falls back, its inner edge (toward
-        // centre) stays forward, and the mirror image holds on the right
-        const offset = i - center;
-        const angleDeg = offset * SLICE_ANGLE;
-        const angleRad = angleDeg * Math.PI / 180;
-        const depth = -CURVE_RADIUS * (1 - Math.cos(angleRad));
-        // rotating a strip around its own centre pulls its inner edge back
-        // toward that centre (foreshortening), opening a seam against its
-        // neighbour — nudge the whole strip back outward to close it
-        const sliceW = contentW / FACE_SLICES;
-        const seamFix = offset === 0 ? 0 : -Math.sign(offset) * (sliceW / 2) * (1 - Math.cos(angleRad));
-        slice.style.transform = `translateX(${seamFix.toFixed(1)}px) translateZ(${depth.toFixed(1)}px) rotateY(${angleDeg.toFixed(1)}deg)`;
-        face.appendChild(slice);
-      }
       pillarStage.insertBefore(face, pageWorld);
       return face;
     }

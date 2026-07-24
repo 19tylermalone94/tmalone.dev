@@ -84,18 +84,15 @@ html.flying #pillarStage { perspective: 1600px; }
    curved faces are the pillar-face clones below */
 html.flying #pageWorld { visibility: hidden; }
 
-/* each face (front/back) is built from FACE_SLICES clipped strips, every
-   strip independently rotated so the centre stays closest to the camera and
-   both edges recede — a single flat panel can only hinge (one edge near,
-   one far), which reads as a corner; strips are what make it read as the
-   outside of a round pillar instead. Purely decorative scenery — inert,
-   out of flow, built only while flying. */
+/* each face (front/back) is a single flat clone of the page, positioned and
+   (for the back) turned and pushed into depth by JS. Purely decorative
+   scenery — inert, out of flow, built only while flying. */
 .pillar-face {
   position: absolute;
   top: 0; left: 0; width: 100%;
   pointer-events: none;
   will-change: transform;
-  transform-style: preserve-3d;
+  backface-visibility: visible;
 }
 .pillar-face--front { z-index: 2; }
 .pillar-face--back {
@@ -107,12 +104,6 @@ html.flying #pageWorld { visibility: hidden; }
   position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(6,8,20,0.4), rgba(6,8,20,0.6));
   mix-blend-mode: multiply;
-}
-.pillar-slice {
-  position: absolute;
-  top: 0; left: 0; width: 100%;
-  backface-visibility: visible;
-  will-change: transform;
 }
 
 /* scroll progress — thin filament across the top */
