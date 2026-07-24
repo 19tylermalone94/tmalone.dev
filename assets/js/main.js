@@ -1086,7 +1086,7 @@
       // drifting sky clouds (frac = where in the descent they live)
       clouds = [];
       for (let i = 0; i < 16 * WORLD_SPAN; i++) {
-        clouds.push({ frac: rand(0.5, 0.72), x: rand(-0.1, 1.1), w: rand(0.16, 0.34), spd: rand(0.004, 0.018) * (Math.random() < 0.5 ? -1 : 1), depth: rand(0.4, 1), img: (Math.random() * cloudImgs.length) | 0 });
+        clouds.push({ frac: rand(0.5, 0.72), x: rand(-0.1, 1.1), w: rand(0.16, 0.34), spd: rand(0.0008, 0.0035) * (Math.random() < 0.5 ? -1 : 1), depth: rand(0.4, 1), img: (Math.random() * cloudImgs.length) | 0 });
       }
       // fish (underwater)
       fish = [];
@@ -1113,7 +1113,7 @@
       // airplanes — high altitude, between space and the clouds
       planes = [];
       for (let i = 0; i < 3 * WORLD_SPAN; i++) {
-        planes.push({ frac: rand(0.36, 0.52), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.02, 0.045), s: rand(0.7, 1.1), wob: rand(0, 6.28) });
+        planes.push({ frac: rand(0.36, 0.52), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.004, 0.009), s: rand(0.7, 1.1), wob: rand(0, 6.28) });
       }
       // sea-floor flora — kelp + coral on the ocean bed
       flora = [];
@@ -1636,6 +1636,7 @@
           bx.fillStyle = rgb([10, 30, 36], floorA);
           bx.beginPath(); bx.moveTo(0, BH);
           for (let x = 0; x <= BW; x += 3) bx.lineTo(x, floorY(x));
+          bx.lineTo(BW, floorY(BW));   // land the top edge exactly on the right edge (BW may not be a multiple of 3)
           bx.lineTo(BW, BH); bx.closePath(); bx.fill();
           // kelp first (taller, behind), then coral nestled in front
           for (const o of flora) {
