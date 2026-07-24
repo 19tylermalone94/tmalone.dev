@@ -11,6 +11,95 @@
   // in step with the content wrap. Shared because both are IIFEs in this scope.
   let orbitFrac = 0;
 
+  /* ---------------- Background music ----------------
+     Two playlists that repeat forever; each track is queued the number of
+     times the "song" needs it, per Tyler's spec. Plays by default (falling
+     back to the first user gesture when autoplay is blocked) and is driven by
+     the auto-hiding player bar at the bottom of the page. */
+  const music = (function () {
+    // one entry per song = one "track" on the bar; [name, plays]. The extra
+    // play is an internal loop of that wav, invisible to skip/prev.
+    const SONGS = {
+      normal: [["shuffly_thing", 2], ["just_chillin_loop", 2], ["normal_song", 1]],
+      game:   [["less_serious", 2], ["boom_boom_chuck", 2]],
+    };
+    const el = new Audio();
+    el.preload = "auto";
+    let cur = "normal", ti = 0, rep = 0, paused = false, seeking = false;
+
+    const P = document.getElementById("player");
+    const playBtn = document.getElementById("plPlay");
+    const trackEl = document.getElementById("plTrack");
+    const seekEl = document.getElementById("plSeek");
+    const curEl = document.getElementById("plCur");
+    const durEl = document.getElementById("plDur");
+
+    const songs = () => SONGS[cur];
+    const fmt = (s) => (!isFinite(s) ? "0:00" : `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`);
+
+    function loadCur(autoplay) {
+      const n = songs()[ti][0];
+      el.src = `assets/audio/${n}.mp3`;
+      if (trackEl) trackEl.textContent = `${n}.wav`;   // raw wav name — Aphex vibes
+      if (autoplay && !paused) el.play().catch(() => {});
+    }
+    function syncPlayBtn() {
+      const playing = !paused && !el.paused;
+      if (playBtn) { playBtn.textContent = playing ? "❚❚" : "▶"; playBtn.setAttribute("aria-pressed", String(playing)); playBtn.setAttribute("aria-label", playing ? "Pause" : "Play"); }
+    }
+
+    // skip to the next/previous distinct song (resets the internal loop count)
+    function step(d) { ti = (ti + d + songs().length) % songs().length; rep = 0; loadCur(true); }
+    // natural end: loop the same wav until its play-count is met, then advance
+    el.addEventListener("ended", () => {
+      if (rep + 1 < songs()[ti][1]) { rep++; el.currentTime = 0; if (!paused) el.play().catch(() => {}); }
+      else step(1);
+    });
+    el.addEventListener("play", syncPlayBtn);
+    el.addEventListener("pause", syncPlayBtn);
+    el.addEventListener("loadedmetadata", () => { if (durEl) durEl.textContent = fmt(el.duration); });
+    el.addEventListener("timeupdate", () => {
+      if (curEl) curEl.textContent = fmt(el.currentTime);
+      if (seekEl && !seeking && el.duration) seekEl.value = String((el.currentTime / el.duration) * 1000);
+    });
+
+    // switch playlist (scroll <-> game); restart from its top
+    function set(name) { if (cur === name) return; cur = name; ti = 0; rep = 0; loadCur(true); }
+
+    /* ---- controls ---- */
+    if (playBtn) playBtn.addEventListener("click", () => {
+      if (el.paused) { paused = false; el.play().catch(() => {}); }
+      else { paused = true; el.pause(); }
+    });
+    if (document.getElementById("plNext")) document.getElementById("plNext").addEventListener("click", () => step(1));
+    if (document.getElementById("plPrev")) document.getElementById("plPrev").addEventListener("click", () => {
+      if (el.currentTime > 3) el.currentTime = 0; else step(-1);   // restart, then previous
+    });
+    if (seekEl) {
+      const commit = () => { if (el.duration) el.currentTime = (seekEl.value / 1000) * el.duration; seeking = false; };
+      seekEl.addEventListener("input", () => { seeking = true; if (curEl && el.duration) curEl.textContent = fmt((seekEl.value / 1000) * el.duration); });
+      seekEl.addEventListener("change", commit);
+    }
+
+    /* ---- auto-hide: collapse when the pointer leaves for a bit ---- */
+    if (P) {
+      let t;
+      const reveal = () => { P.classList.remove("is-collapsed"); clearTimeout(t); t = setTimeout(() => { if (!P.matches(":hover")) P.classList.add("is-collapsed"); }, 2800); };
+      P.addEventListener("pointerenter", reveal);
+      P.addEventListener("pointermove", reveal);
+      window.addEventListener("pointermove", (e) => { if (e.clientY > window.innerHeight - 70) reveal(); });
+      reveal();
+    }
+
+    /* ---- play by default, with autoplay-policy fallback ---- */
+    loadCur(true);
+    const kick = () => { if (!paused && el.paused) el.play().catch(() => {}); };
+    ["pointerdown", "keydown", "scroll", "touchstart"].forEach((ev) =>
+      window.addEventListener(ev, kick, { once: true, passive: true }));
+
+    return { normal: () => set("normal"), game: () => set("game") };
+  })();
+
   /* ---------------- Starfield ---------------- */
   const canvas = document.getElementById("starfield");
   if (canvas && !reduceMotion) {
@@ -456,6 +545,7 @@
     function die() {
       if (dead) return;
       dead = true; alive = false;
+      music.normal();
       explode(rx, ry, "gold", 40); explode(rx, ry, "rose", 26); explode(rx, ry, "white", 16);
       shake = 18;
       rocket.hidden = true;
@@ -887,6 +977,7 @@
     function start() {
       if (active) return;
       active = true;
+      music.game();
       sizeGame();
       resetGame();
       // reveal everything so sections are already visible when the wrap
@@ -908,6 +999,7 @@
     function stop() {
       if (!active) return;
       active = false;
+      music.normal();
       cancelAnimationFrame(raf);
       keys.up = keys.down = keys.left = keys.right = keys.boost = keys.fire = false;
       aim.on = false; aim.boost = false;
@@ -927,6 +1019,7 @@
 
     function again() {
       if (!active) { start(); return; }
+      music.game();
       resetGame();
       updateHud();
     }
