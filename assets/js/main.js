@@ -1091,15 +1091,15 @@
       // fish (underwater)
       fish = [];
       for (let i = 0; i < 28 * WORLD_SPAN; i++) {
-        fish.push({ frac: rand(0.88, 0.99), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.02, 0.06), s: rand(0.7, 1.5), img: (Math.random() * fishImgs.length) | 0, wob: rand(0, 6.28) });
+        fish.push({ frac: rand(0.88, 0.99), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.01, 0.03), s: rand(0.7, 1.5), img: (Math.random() * fishImgs.length) | 0, wob: rand(0, 6.28) });
       }
       // shark — a single roaming predator
-      sharks = [{ frac: rand(0.89, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.05, 0.08), s: rand(1.0, 1.25), wob: rand(0, 6.28) }];
+      sharks = [{ frac: rand(0.89, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.025, 0.04), s: rand(1.0, 1.25), wob: rand(0, 6.28) }];
       gore = [];
       // boat — drifts along the sea surface
       boats = [{ x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.006, 0.012), ph: rand(0, 6.28) }];
       // whale — a lone giant gliding through the deep
-      whales = [{ frac: rand(0.91, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.012, 0.022), s: rand(1.0, 1.3), wob: rand(0, 6.28) }];
+      whales = [{ frac: rand(0.91, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.006, 0.011), s: rand(1.0, 1.3), wob: rand(0, 6.28) }];
       // bubbles
       bubbles = [];
       for (let i = 0; i < 40 * WORLD_SPAN; i++) {
