@@ -1629,7 +1629,10 @@
         const floorA = band(p, 0.93, 1.0, 0.04, 0.0);
         if (floorA > 0.01) {
           const fl = fy(0.99, 7);
-          const floorY = (fx) => fl + Math.sin(fx * 0.05) * BH * 0.03;
+          // whole number of sine cycles across BW so the floor height matches at
+          // the wrap edge (x=0 == x=BW) — otherwise the join shows a step seam
+          const floorK = (2 * Math.PI * Math.max(1, Math.round(BW * 0.05 / (2 * Math.PI)))) / BW;
+          const floorY = (fx) => fl + Math.sin(fx * floorK) * BH * 0.03;
           bx.fillStyle = rgb([10, 30, 36], floorA);
           bx.beginPath(); bx.moveTo(0, BH);
           for (let x = 0; x <= BW; x += 3) bx.lineTo(x, floorY(x));
