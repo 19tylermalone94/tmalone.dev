@@ -11,7 +11,7 @@
   gtag('config', 'G-0GNGQLQQ8Q');
 </script>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Tyler Malone · Software Engineer</title>
 <meta name="description" content="Software Engineer specializing in full-stack development, DevOps, distributed systems, and agentic AI." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -99,7 +99,11 @@
 
 <div class="gameover" id="gameover" hidden aria-hidden="true">
   <div class="gameover__panel" role="dialog" aria-label="Game over">
-    <h2 class="gameover__title">You blew up</h2>
+    <div class="gameover__head">
+      <span class="gameover__tag">Flight Debrief</span>
+      <h2 class="gameover__title">You blew up</h2>
+      <span class="gameover__rule" aria-hidden="true"></span>
+    </div>
     <p class="gameover__sub" id="goSub"></p>
     <div class="gameover__stats" id="goStats"></div>
     <div class="gameover__name">
