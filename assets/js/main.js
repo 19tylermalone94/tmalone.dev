@@ -81,12 +81,22 @@
       seekEl.addEventListener("change", commit);
     }
 
-    /* ---- auto-hide: collapse when the pointer leaves for a bit ---- */
+    /* ---- auto-hide: collapse when the pointer leaves for a bit ----
+       Only on devices that can actually hover — touch has no ambient
+       "pointer nearby" signal, so auto-collapsing there just makes the
+       bar vanish into an unreachable sliver. Touch users get it revealed
+       and left alone. */
     if (P) {
+      const canHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
       let t;
-      const reveal = () => { P.classList.remove("is-collapsed"); clearTimeout(t); t = setTimeout(() => { if (!P.matches(":hover")) P.classList.add("is-collapsed"); }, 2800); };
+      const reveal = () => {
+        P.classList.remove("is-collapsed");
+        clearTimeout(t);
+        if (canHover) t = setTimeout(() => { if (!P.matches(":hover")) P.classList.add("is-collapsed"); }, 2800);
+      };
       P.addEventListener("pointerenter", reveal);
       P.addEventListener("pointermove", reveal);
+      P.addEventListener("touchstart", reveal, { passive: true });
       window.addEventListener("pointermove", (e) => { if (e.clientY > window.innerHeight - 70) reveal(); });
       reveal();
     }
