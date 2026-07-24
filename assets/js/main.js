@@ -433,7 +433,9 @@
       shots++;
       const rad = rot * Math.PI / 180;
       const dx = Math.sin(rad), dy = -Math.cos(rad);
-      pBullets.push({ x: wmod(rx + dx * 28 * RSCALE), y: ry + dy * 28 * RSCALE, vx: dx * BULLET_V + vx * 0.3, vy: dy * BULLET_V + vy * 0.3, life: 1.1 });
+      // inherit the ship's full velocity (relativity): the muzzle speed rides on
+      // top of the ship's, so a shot always pulls ahead by BULLET_V even at boost
+      pBullets.push({ x: wmod(rx + dx * 28 * RSCALE), y: ry + dy * 28 * RSCALE, vx: dx * BULLET_V + vx, vy: dy * BULLET_V + vy, life: 1.1 });
       vx -= dx * 26; vy -= dy * 26;            // gentle recoil
       beep(660, 0.07, "square", 0.025, 240);
     }
@@ -1648,15 +1650,16 @@
 
       // ---- blit → screen (pixelated) ----
       // show one screen-width window (SBW) of the wide panorama, sliding it once
-      // around per lap. src is continuous mod BW, so the wrap is seamless; a
-      // second draw fills the seam when the window straddles the buffer edge.
+      // around per lap. When the window straddles the buffer edge it takes two
+      // draws; the join is snapped to an INTEGER screen pixel so the two segments
+      // meet edge-to-edge with no fractional-pixel hairline (smoothing is off).
       ctx.clearRect(0, 0, W, H);
       const src = (((-orbitFrac * BW) % BW) + BW) % BW;   // window start in buffer px, 0..BW
-      const w1 = Math.min(SBW, BW - src);                 // width before wrap
-      ctx.drawImage(buf, src, 0, w1, BH, 0, 0, (w1 / SBW) * W, H);
+      const w1 = Math.min(SBW, BW - src);                 // buffer width before wrap
+      const splitX = Math.round((w1 / SBW) * W);          // integer screen-x of the join
+      ctx.drawImage(buf, src, 0, w1, BH, 0, 0, splitX, H);
       if (w1 < SBW) {
-        const w2 = SBW - w1;
-        ctx.drawImage(buf, 0, 0, w2, BH, (w1 / SBW) * W, 0, (w2 / SBW) * W, H);
+        ctx.drawImage(buf, 0, 0, SBW - w1, BH, splitX, 0, W - splitX, H);
       }
 
       // ---- subtle vignette (screen space, over the blitted window) ----
