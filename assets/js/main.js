@@ -6,6 +6,11 @@
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // how far around the pillar the rocket has flown, 0..1 (0 = not flying).
+  // Set by flight(), read by worldScene() to pan the background horizontally
+  // in step with the content wrap. Shared because both are IIFEs in this scope.
+  let orbitFrac = 0;
+
   /* ---------------- Starfield ---------------- */
   const canvas = document.getElementById("starfield");
   if (canvas && !reduceMotion) {
@@ -776,6 +781,7 @@
         window.scrollTo(0, clamp(camY - innerHeight / 2, 0, pageH() - innerHeight));
         placePerspective();
         placeFaces();
+        orbitFrac = camX / worldW;   // drive the background's horizontal pan
       } else {
         sp = Math.hypot(vx, vy);
         thrust += (0 - thrust) * 0.1;
@@ -854,6 +860,7 @@
       rocket.hidden = true;
       resetWorld();
       removeFaces();
+      orbitFrac = 0;   // background stops panning when we leave flight
       if (gcanvas) { gcanvas.hidden = true; if (gctx) { gctx.setTransform(1, 0, 0, 1, 0, 0); gctx.clearRect(0, 0, gcanvas.width, gcanvas.height); } }
       if (hud) hud.hidden = true;
       if (gameover) { gameover.hidden = true; gameover.classList.remove("in"); }
@@ -941,6 +948,13 @@
     const ctx = cv.getContext("2d");
     const buf = document.createElement("canvas");
     const bx = buf.getContext("2d");
+    // the background is rendered this many screen-widths wide — a full panorama
+    // that wraps exactly once per lap around the pillar (not a screen tiled over
+    // and over). Different scenery sits at different bearings; the planet + moon
+    // live in the front section, so they fall behind you at the back. Feature
+    // POSITIONS scale with the wide BW; feature SIZES scale with one screen
+    // (SBW) so the scene reads wider, not stretched.
+    const WORLD_SPAN = 4;
 
     // ---- helpers ----
     const clamp01 = (n) => (n < 0 ? 0 : n > 1 ? 1 : n);
@@ -1015,7 +1029,9 @@
       const nodes = []; let t = -0.05, up = true;
       while (t < 1.08) {
         nodes.push({ t: t, h: up ? rand(0.5, 1.0) : rand(0.0, 0.3) });
-        t += up ? rand(0.05, 0.13) : rand(0.03, 0.09);
+        // steps shrink with WORLD_SPAN → ~WORLD_SPAN× more peaks across the wide
+        // panorama, so each peak stays screen-width, not stretched
+        t += (up ? rand(0.05, 0.13) : rand(0.03, 0.09)) / WORLD_SPAN;
         up = !up;
       }
       return nodes;
@@ -1035,10 +1051,12 @@
       return arr;
     }
 
+    // the world background wraps continuously (tiled, no gap) at this many
+
     // ---- state ----
     const SCALE = (() => Math.max(3, Math.round(innerWidth / 520)))();
     let scale = SCALE;
-    let W, H, BW, BH;
+    let W, H, BW, BH, SBW;   // SBW = one screen-width in buffer px; BW = SBW * WORLD_SPAN
     let stars = [], nebulae = [], clouds = [], fish = [], bubbles = [], birds = [], sharks = [], gore = [], planes = [], flora = [], boats = [], whales = [];
     let lastWidth = 0;
     let p = 0;                 // eased scroll fraction
@@ -1060,17 +1078,17 @@
       // nebula clouds
       nebulae = [];
       const NEB = [[60, 30, 120], [120, 40, 90], [22, 70, 96], [40, 30, 110]];
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 5 * WORLD_SPAN; i++) {
         nebulae.push({ x: rand(0, BW), y: rand(0, BH * 1.2), r: rand(BH * 0.25, BH * 0.6), c: NEB[i % NEB.length], a: rand(0.05, 0.12) });
       }
       // drifting sky clouds (frac = where in the descent they live)
       clouds = [];
-      for (let i = 0; i < 16; i++) {
+      for (let i = 0; i < 16 * WORLD_SPAN; i++) {
         clouds.push({ frac: rand(0.5, 0.72), x: rand(-0.1, 1.1), w: rand(0.16, 0.34), spd: rand(0.004, 0.018) * (Math.random() < 0.5 ? -1 : 1), depth: rand(0.4, 1), img: (Math.random() * cloudImgs.length) | 0 });
       }
       // fish (underwater)
       fish = [];
-      for (let i = 0; i < 28; i++) {
+      for (let i = 0; i < 28 * WORLD_SPAN; i++) {
         fish.push({ frac: rand(0.88, 0.99), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.02, 0.06), s: rand(0.7, 1.5), img: (Math.random() * fishImgs.length) | 0, wob: rand(0, 6.28) });
       }
       // shark — a single roaming predator
@@ -1082,28 +1100,28 @@
       whales = [{ frac: rand(0.91, 0.96), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.012, 0.022), s: rand(1.0, 1.3), wob: rand(0, 6.28) }];
       // bubbles
       bubbles = [];
-      for (let i = 0; i < 40; i++) {
+      for (let i = 0; i < 40 * WORLD_SPAN; i++) {
         bubbles.push({ x: rand(0, BW), y: rand(0, BH), r: rand(0.6, 2.4) * (scale / 4 + 0.5), spd: rand(6, 22) });
       }
       // birds
       birds = [];
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 6 * WORLD_SPAN; i++) {
         birds.push({ frac: rand(0.6, 0.76), x: rand(0, 1), spd: rand(0.01, 0.03), s: rand(0.8, 1.6), ph: rand(0, 6.28) });
       }
       // airplanes — high altitude, between space and the clouds
       planes = [];
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 3 * WORLD_SPAN; i++) {
         planes.push({ frac: rand(0.36, 0.52), x: rand(0, 1), dir: Math.random() < 0.5 ? 1 : -1, spd: rand(0.02, 0.045), s: rand(0.7, 1.1), wob: rand(0, 6.28) });
       }
       // sea-floor flora — kelp + coral on the ocean bed
       flora = [];
       const KELP = [[28, 92, 62], [38, 112, 74], [22, 78, 56]];
       const CORAL = [[224, 108, 120], [232, 142, 84], [156, 100, 188], [212, 96, 152], [110, 176, 184]];
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 6 * WORLD_SPAN; i++) {
         flora.push({ kind: "kelp", x: rand(0.04, 0.96), h: rand(0.20, 0.34), col: KELP[(Math.random() * KELP.length) | 0], ph: rand(0, 6.28) });
       }
       const kinds = ["branch", "fan", "blob"];
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 7 * WORLD_SPAN; i++) {
         flora.push({ kind: kinds[(Math.random() * kinds.length) | 0], x: rand(0.03, 0.97), h: rand(0.07, 0.15), col: CORAL[(Math.random() * CORAL.length) | 0], ph: rand(0, 6.28) });
       }
     }
@@ -1114,7 +1132,8 @@
       H = cv.height = Math.floor(innerHeight);
       cv.style.width = innerWidth + "px";
       cv.style.height = innerHeight + "px";
-      BW = buf.width = Math.max(2, Math.ceil(innerWidth / scale));
+      SBW = Math.max(2, Math.ceil(innerWidth / scale));
+      BW = buf.width = SBW * WORLD_SPAN;   // wide panorama: one lap = one traversal
       BH = buf.height = Math.max(2, Math.ceil(innerHeight / scale));
       ctx.imageSmoothingEnabled = false;
       bx.imageSmoothingEnabled = false;
@@ -1136,6 +1155,16 @@
     // vertical screen position (buffer space) for a feature centred at
     // scroll fraction `frac`; `travel` controls parallax speed.
     function fy(frac, travel) { return BH * 0.5 + (frac - p) * BH * travel; }
+
+    // x-positions to draw a drifting sprite at so it wraps across the panorama
+    // seam (buffer edge 0/BW): the wrapped position, plus a copy on the far side
+    // when the sprite (half-width hw) overhangs an edge. Feed a raw x; it mods.
+    function wrapXs(x, hw) {
+      const xm = ((x % BW) + BW) % BW;
+      if (xm - hw < 0) return [xm, xm + BW];
+      if (xm + hw > BW) return [xm, xm - BW];
+      return [xm];
+    }
 
     function ellipse(cx, cy, rx, ry) {
       bx.beginPath(); bx.ellipse(cx, cy, Math.max(0.5, rx), Math.max(0.5, ry), 0, 0, 6.2832); bx.fill();
@@ -1297,11 +1326,13 @@
       }
 
       // ---- 4. flat celestial bodies (supplied pixel art, drift by) ----
+      // planet + moon live in the FRONT screen-width of the panorama (SBW, not
+      // BW) so they're in view at the front of the pillar and behind you at the back
       // distant ringed planet, high up
       const planA = band(p, 0.0, 0.22, 0.0, 0.06);
       if (planA > 0.01 && ready(planetImg)) {
         const s = BH * 0.26;
-        const pxp = BW * 0.2 + mx * 4;
+        const pxp = SBW * 0.2 + mx * 4;
         const pyp = fy(0.06, 2.2);
         bx.globalAlpha = planA;
         bx.save();
@@ -1315,7 +1346,7 @@
       const moonA = band(p, 0.0, 0.30, 0.0, 0.06);
       if (moonA > 0.01 && ready(moonImg)) {
         const s = BH * 0.14;
-        const cxm = BW * 0.74 + mx * 6;
+        const cxm = SBW * 0.74 + mx * 6;
         const cym = fy(0.15, 3.0);
         bx.globalAlpha = moonA;
         bx.drawImage(moonImg, cxm - s / 2, cym - s / 2, s, s);
@@ -1342,16 +1373,17 @@
         for (const pl of planes) {
           const pa = band(p, 0.30, 0.56, 0.06, 0.06);
           if (pa < 0.01) continue;
-          let plx = (((pl.x + (reduceMotion ? 0 : tt * pl.spd * pl.dir)) % 1.3) + 1.3) % 1.3;
-          plx = plx * BW - BW * 0.15;
+          const plx = (((pl.x + (reduceMotion ? 0 : tt * pl.spd * pl.dir)) % 1) + 1) % 1 * BW;
           const ply = fy(pl.frac, 4) + Math.sin(tt * 0.8 + pl.wob) * BH * 0.015;
           const psz = BH * 0.12 * pl.s;
           bx.globalAlpha = pa;
-          bx.save();
-          bx.translate(plx, ply);
-          if (pl.dir < 0) bx.scale(-1, 1); // moving left → mirror the right-facing art
-          bx.drawImage(planeImg, -psz / 2, -psz / 2, psz, psz);
-          bx.restore();
+          for (const px of wrapXs(plx, psz / 2)) {
+            bx.save();
+            bx.translate(px, ply);
+            if (pl.dir < 0) bx.scale(-1, 1); // moving left → mirror the right-facing art
+            bx.drawImage(planeImg, -psz / 2, -psz / 2, psz, psz);
+            bx.restore();
+          }
           bx.globalAlpha = 1;
         }
       }
@@ -1362,12 +1394,11 @@
         if (ca < 0.01) continue;
         const img = cloudImgs[c.img];
         if (!ready(img)) continue;
-        const cw = c.w * BW;
-        let cxp = (((c.x + (reduceMotion ? 0 : tt * c.spd)) % 1.4) + 1.4) % 1.4;
-        cxp = cxp * BW - BW * 0.2 + mx * 10 * c.depth;
+        const cw = c.w * SBW;
+        const cxp = (((c.x + (reduceMotion ? 0 : tt * c.spd)) % 1) + 1) % 1 * BW + mx * 10 * c.depth;
         const cyp = fy(c.frac, 4.5);
         bx.globalAlpha = ca * (0.55 + c.depth * 0.45); // distant clouds fainter
-        bx.drawImage(img, cxp - cw / 2, cyp - cw / 2, cw, cw);
+        for (const px of wrapXs(cxp, cw / 2)) bx.drawImage(img, px - cw / 2, cyp - cw / 2, cw, cw);
         bx.globalAlpha = 1;
       }
 
@@ -1375,15 +1406,17 @@
       for (const b of birds) {
         const ba = band(p, b.frac - 0.06, b.frac + 0.06, 0.03, 0.03);
         if (ba < 0.01) continue;
-        const bxp = ((((b.x + (reduceMotion ? 0 : tt * b.spd)) % 1.2) + 1.2) % 1.2) * BW - BW * 0.1;
+        const bxp = (((b.x + (reduceMotion ? 0 : tt * b.spd)) % 1) + 1) % 1 * BW;
         const byp = fy(b.frac, 4) + Math.sin(tt + b.ph) * BH * 0.02;
         const s = b.s * (scale / 4 + 0.6);
         const flap = Math.sin(tt * 6 + b.ph) * s;
         bx.strokeStyle = rgb([20, 26, 40], 0.5 * ba);
         bx.lineWidth = 1;
-        bx.beginPath();
-        bx.moveTo(bxp - 2 * s, byp + flap); bx.lineTo(bxp, byp);
-        bx.lineTo(bxp + 2 * s, byp + flap); bx.stroke();
+        for (const px of wrapXs(bxp, 2 * s)) {
+          bx.beginPath();
+          bx.moveTo(px - 2 * s, byp + flap); bx.lineTo(px, byp);
+          bx.lineTo(px + 2 * s, byp + flap); bx.stroke();
+        }
       }
 
       // ---- 9. parallax mountain ridges (pointy, snow caps, trees) ----
@@ -1419,7 +1452,7 @@
 
           // evergreens along the near (forested) ridge
           if (rg.trees) {
-            const step = Math.max(6, BW / 30);
+            const step = Math.max(6, SBW / 30);
             const th = BH * 0.032;
             bx.globalAlpha = ra;
             for (let x = step * 0.5; x < BW; x += step) {
@@ -1444,24 +1477,25 @@
         // sun glitter column
         const gxp = BW * 0.74;
         bx.fillStyle = rgb([255, 244, 214], 0.4 * surfA);
-        for (let x = gxp - BW * 0.06; x < gxp + BW * 0.06; x += 2) {
+        for (let x = gxp - SBW * 0.06; x < gxp + SBW * 0.06; x += 2) {
           if (Math.random() < 0.5) bx.fillRect(x, (sl + Math.sin(x + tt * 3) * 2) | 0, 2, 1);
         }
 
         // boat — rides the waterline, rocking with the swell
         if (ready(boatImg)) {
           for (const bt of boats) {
-            let btx = (((bt.x + (reduceMotion ? 0 : tt * bt.spd * bt.dir)) % 1.2) + 1.2) % 1.2;
-            btx = btx * BW - BW * 0.1;
+            const btx = (((bt.x + (reduceMotion ? 0 : tt * bt.spd * bt.dir)) % 1) + 1) % 1 * BW;
             const bsz = BH * 0.13;
             const rock = Math.sin(tt * 1.1 + bt.ph);
             bx.globalAlpha = surfA;
-            bx.save();
-            bx.translate(btx, sl - bsz * 0.26 + rock * BH * 0.006); // hull dips below the line
-            if (bt.dir > 0) bx.scale(-1, 1); // boat art faces left → mirror when sailing right
-            bx.rotate(rock * 0.05);
-            bx.drawImage(boatImg, -bsz / 2, -bsz / 2, bsz, bsz);
-            bx.restore();
+            for (const px of wrapXs(btx, bsz / 2)) {
+              bx.save();
+              bx.translate(px, sl - bsz * 0.26 + rock * BH * 0.006); // hull dips below the line
+              if (bt.dir > 0) bx.scale(-1, 1); // boat art faces left → mirror when sailing right
+              bx.rotate(rock * 0.05);
+              bx.drawImage(boatImg, -bsz / 2, -bsz / 2, bsz, bsz);
+              bx.restore();
+            }
             bx.globalAlpha = 1;
           }
         }
@@ -1475,15 +1509,15 @@
         bx.save();
         bx.globalCompositeOperation = "lighter";
         for (let i = 0; i < 4; i++) {
-          const rx = BW * (0.2 + i * 0.2) + Math.sin(tt * 0.3 + i) * BW * 0.04;
-          const w = BW * 0.05;
-          const rg2 = bx.createLinearGradient(rx, rayTop, rx + BW * 0.12, BH);
+          const rx = BW * (0.2 + i * 0.2) + Math.sin(tt * 0.3 + i) * SBW * 0.04;
+          const w = SBW * 0.05;
+          const rg2 = bx.createLinearGradient(rx, rayTop, rx + SBW * 0.12, BH);
           rg2.addColorStop(0, rgb([150, 220, 230], 0.10 * waterA));
           rg2.addColorStop(1, rgb([150, 220, 230], 0));
           bx.fillStyle = rg2;
           bx.beginPath();
           bx.moveTo(rx, rayTop); bx.lineTo(rx + w, rayTop);
-          bx.lineTo(rx + BW * 0.16 + w, BH); bx.lineTo(rx + BW * 0.16, BH);
+          bx.lineTo(rx + SBW * 0.16 + w, BH); bx.lineTo(rx + SBW * 0.16, BH);
           bx.closePath(); bx.fill();
         }
         bx.restore();
@@ -1492,16 +1526,17 @@
         for (const wh of whales) {
           const wa = band(p, wh.frac - 0.14, wh.frac + 0.14, 0.05, 0.05) * waterA;
           if (wa < 0.01 || !ready(whaleImg)) continue;
-          let wx = (((wh.x + (reduceMotion ? 0 : tt * wh.spd * wh.dir)) % 1.4) + 1.4) % 1.4;
-          wx = wx * BW - BW * 0.2;
+          const wx = (((wh.x + (reduceMotion ? 0 : tt * wh.spd * wh.dir)) % 1) + 1) % 1 * BW;
           const wyp = fy(wh.frac, 7) + Math.sin(tt * 0.8 + wh.wob) * BH * 0.03;
           const wsz = BH * 0.32 * wh.s;
           bx.globalAlpha = 0.88 * wa;
-          bx.save();
-          bx.translate(wx, wyp);
-          if (wh.dir < 0) bx.scale(-1, 1);
-          bx.drawImage(whaleImg, -wsz / 2, -wsz / 2, wsz, wsz);
-          bx.restore();
+          for (const px of wrapXs(wx, wsz / 2)) {
+            bx.save();
+            bx.translate(px, wyp);
+            if (wh.dir < 0) bx.scale(-1, 1);
+            bx.drawImage(whaleImg, -wsz / 2, -wsz / 2, wsz, wsz);
+            bx.restore();
+          }
           bx.globalAlpha = 1;
         }
 
@@ -1512,17 +1547,18 @@
           if (fa < 0.01) continue;
           const img = fishImgs[f.img];
           if (!ready(img)) continue;
-          let fx = (((f.x + (reduceMotion ? 0 : tt * f.spd * f.dir)) % 1.2) + 1.2) % 1.2;
-          fx = fx * BW - BW * 0.1;
+          const fx = (((f.x + (reduceMotion ? 0 : tt * f.spd * f.dir)) % 1) + 1) % 1 * BW;
           const fyp = fy(f.frac, 7) + Math.sin(tt * 2 + f.wob) * BH * 0.02;
           const sz = BH * 0.07 * f.s;
           f._x = fx; f._y = fyp; f._sz = sz; // remembered for shark collision
           bx.globalAlpha = 0.92 * fa;
-          bx.save();
-          bx.translate(fx, fyp);
-          if (f.dir < 0) bx.scale(-1, 1); // moving left → mirror the right-facing art
-          bx.drawImage(img, -sz / 2, -sz / 2, sz, sz);
-          bx.restore();
+          for (const px of wrapXs(fx, sz / 2)) {
+            bx.save();
+            bx.translate(px, fyp);
+            if (f.dir < 0) bx.scale(-1, 1); // moving left → mirror the right-facing art
+            bx.drawImage(img, -sz / 2, -sz / 2, sz, sz);
+            bx.restore();
+          }
           bx.globalAlpha = 1;
         }
 
@@ -1530,8 +1566,7 @@
         for (const sh of sharks) {
           const sa = band(p, sh.frac - 0.12, sh.frac + 0.12, 0.05, 0.05) * waterA;
           if (sa < 0.01 || !ready(sharkImg)) continue;
-          let sx = (((sh.x + (reduceMotion ? 0 : tt * sh.spd * sh.dir)) % 1.3) + 1.3) % 1.3;
-          sx = sx * BW - BW * 0.15;
+          const sx = (((sh.x + (reduceMotion ? 0 : tt * sh.spd * sh.dir)) % 1) + 1) % 1 * BW;
           const syp = fy(sh.frac, 7) + Math.sin(tt * 1.3 + sh.wob) * BH * 0.02;
           const ssz = BH * 0.18 * sh.s;
           // mouth point sits at the front, slightly low (where the teeth are)
@@ -1554,11 +1589,13 @@
             }
           }
           bx.globalAlpha = 0.95 * sa;
-          bx.save();
-          bx.translate(sx, syp);
-          if (sh.dir < 0) bx.scale(-1, 1);
-          bx.drawImage(sharkImg, -ssz / 2, -ssz / 2, ssz, ssz);
-          bx.restore();
+          for (const px of wrapXs(sx, ssz / 2)) {
+            bx.save();
+            bx.translate(px, syp);
+            if (sh.dir < 0) bx.scale(-1, 1);
+            bx.drawImage(sharkImg, -ssz / 2, -ssz / 2, ssz, ssz);
+            bx.restore();
+          }
           bx.globalAlpha = 1;
         }
 
@@ -1609,15 +1646,24 @@
         }
       }
 
-      // ---- 12. subtle vignette ----
-      const vg = bx.createRadialGradient(BW / 2, BH / 2, BH * 0.4, BW / 2, BH / 2, BH * 0.85);
+      // ---- blit → screen (pixelated) ----
+      // show one screen-width window (SBW) of the wide panorama, sliding it once
+      // around per lap. src is continuous mod BW, so the wrap is seamless; a
+      // second draw fills the seam when the window straddles the buffer edge.
+      ctx.clearRect(0, 0, W, H);
+      const src = (((-orbitFrac * BW) % BW) + BW) % BW;   // window start in buffer px, 0..BW
+      const w1 = Math.min(SBW, BW - src);                 // width before wrap
+      ctx.drawImage(buf, src, 0, w1, BH, 0, 0, (w1 / SBW) * W, H);
+      if (w1 < SBW) {
+        const w2 = SBW - w1;
+        ctx.drawImage(buf, 0, 0, w2, BH, (w1 / SBW) * W, 0, (w2 / SBW) * W, H);
+      }
+
+      // ---- subtle vignette (screen space, over the blitted window) ----
+      const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.4, W / 2, H / 2, H * 0.85);
       vg.addColorStop(0, "rgba(0,0,0,0)");
       vg.addColorStop(1, "rgba(0,0,0,0.28)");
-      bx.fillStyle = vg; bx.fillRect(0, 0, BW, BH);
-
-      // ---- blit low-res buffer → screen (pixelated) ----
-      ctx.clearRect(0, 0, W, H);
-      ctx.drawImage(buf, 0, 0, BW, BH, 0, 0, W, H);
+      ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
 
       if (reduceMotion) return;
       requestAnimationFrame(draw);
