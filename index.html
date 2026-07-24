@@ -603,6 +603,20 @@
 </div>
 </div>
 
+<!-- ============ MUSIC PLAYER ============ -->
+<div class="player is-collapsed" id="player" aria-label="Background music player">
+  <button type="button" class="player__btn player__btn--prev" id="plPrev" aria-label="Previous track" title="Previous">⏮</button>
+  <button type="button" class="player__btn player__btn--play" id="plPlay" aria-label="Play" aria-pressed="false" title="Play / pause">▶</button>
+  <button type="button" class="player__btn player__btn--next" id="plNext" aria-label="Next track" title="Next">⏭</button>
+  <div class="player__meta">
+    <span class="player__track" id="plTrack">—</span>
+    <span class="player__by">by Tyler Malone</span>
+  </div>
+  <span class="player__time" id="plCur">0:00</span>
+  <input type="range" class="player__seek" id="plSeek" min="0" max="1000" value="0" step="1" aria-label="Seek" />
+  <span class="player__time" id="plDur">0:00</span>
+</div>
+
 <script src="assets/js/main.js"></script>
 </body>
 </html>
