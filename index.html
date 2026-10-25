@@ -1,660 +1,82 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-0GNGQLQQ8Q"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-0GNGQLQQ8Q');
-</script>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Tyler Malone · Software Engineer</title>
-<meta name="description" content="Software Engineer specializing in full-stack development, DevOps, distributed systems, and agentic AI." />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Jersey+15&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="assets/css/styles.css" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tyler Malone</title>
+<meta name="description" content="Tyler Malone is a software engineer in Arkansas who builds AI tools and web applications for businesses. Marine Corps veteran, Colorado State computer science graduate, and founder of ContraptionSoft.">
+<link rel="canonical" href="https://tmalone.dev/">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:title" content="Tyler Malone">
+<meta property="og:description" content="Software engineer in Arkansas. I build AI tools and web applications for businesses.">
+<meta property="og:url" content="https://tmalone.dev/">
+<meta property="og:type" content="profile">
+<link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+<main class="shell">
 
-<canvas id="worldScene" class="world-scene" aria-hidden="true"></canvas>
-<div class="grain" aria-hidden="true"></div>
-<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
-
-<!-- ============ NAV ============ -->
-<header class="nav" id="top">
-  <a href="#top" class="nav__brand">
-    <span class="nav__sigil" aria-hidden="true">✦</span>
-    <span class="nav__name">Tyler Malone</span>
-  </a>
-  <nav class="nav__links" aria-label="Primary">
-    <a href="#about">About</a>
-    <a href="#experience">Experience</a>
-    <a href="#projects">Recent Side Projects</a>
-    <a href="#education">Education</a>
-    <a href="#skills">Skills</a>
-    <a href="#service">Service</a>
-    <a href="#contact">Contact</a>
+<header class="intro">
+  <h1>Tyler Malone</h1>
+  <p class="lede">Software engineer in Arkansas. I build AI tools and web applications for businesses, from the first version to something people use every day.</p>
+  <nav class="links" aria-label="Contact and profiles">
+    <a href="mailto:tyler@contraptionsoft.com">Email</a>
+    <a href="https://www.linkedin.com/in/tylermmalone">LinkedIn</a>
+    <a href="https://github.com/19tylermalone94">GitHub</a>
+    <a href="https://contraptionsoft.com">ContraptionSoft</a>
   </nav>
-  <div class="nav__actions">
-    <button type="button" class="nav__fly" id="flyBtn" aria-pressed="false" aria-label="Fly a rocket and fight aliens" title="Fly &amp; fight: hold click/touch to steer &amp; shoot (WASD works too), double-click &amp; hold to boost">
-      <span class="nav__fly-ico" aria-hidden="true">🚀</span>
-    </button>
-    <a href="#contact" class="nav__cta">Available</a>
-  </div>
 </header>
 
-<!-- ============ FLIGHT MODE ============ -->
-<div class="rocket" id="rocket" aria-hidden="true" hidden>
-  <svg class="rocket__svg" viewBox="0 0 48 84" width="48" height="84" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="rkBody" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#9aa0c8"/>
-        <stop offset="0.45" stop-color="#f4f1ff"/>
-        <stop offset="1" stop-color="#7e84ad"/>
-      </linearGradient>
-      <linearGradient id="rkNose" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#d8b873"/>
-        <stop offset="0.5" stop-color="#e9c987"/>
-        <stop offset="1" stop-color="#b8965a"/>
-      </linearGradient>
-      <radialGradient id="rkWin" cx="0.4" cy="0.35" r="0.8">
-        <stop offset="0" stop-color="#d6f6ff"/>
-        <stop offset="0.55" stop-color="#7fd6e8"/>
-        <stop offset="1" stop-color="#1d5a6c"/>
-      </radialGradient>
-    </defs>
-    <path d="M14 52 L3 71 L15 64 Z" fill="#e08aa8"/>
-    <path d="M34 52 L45 71 L33 64 Z" fill="#e08aa8"/>
-    <path d="M24 2 C32 12 34 22 34 40 L34 58 C34 66 30 72 24 77 C18 72 14 66 14 58 L14 40 C14 22 16 12 24 2 Z" fill="url(#rkBody)" stroke="rgba(11,15,32,0.5)" stroke-width="1"/>
-    <path d="M24 2 C28 7 30 12 31 19 L17 19 C18 12 20 7 24 2 Z" fill="url(#rkNose)"/>
-    <circle cx="24" cy="35" r="7.5" fill="url(#rkWin)" stroke="rgba(11,15,32,0.55)" stroke-width="1.5"/>
-    <circle cx="21.5" cy="32.5" r="2" fill="rgba(255,255,255,0.7)"/>
-    <rect x="13.5" y="54" width="21" height="4" rx="2" fill="rgba(11,15,32,0.35)"/>
-  </svg>
-  <span class="rocket__flame" aria-hidden="true"></span>
-</div>
-
-
-<!-- ============ GAME (combat layer · HUD · achievements) ============ -->
-<canvas class="game-layer" id="gameLayer" hidden aria-hidden="true"></canvas>
-<div class="hit-flash" id="hitFlash" aria-hidden="true"></div>
-
-<div class="hud" id="hud" hidden aria-hidden="true">
-  <div class="hud__bar">
-    <div class="hud__health" title="Hull integrity">
-      <span class="hud__health-fill" id="healthFill" data-lvl="ok"></span>
-    </div>
-    <div class="hud__stats">
-      <span><b id="hudTime">0.0s</b> alive</span>
-      <span><b id="hudKills">0</b> kills</span>
-    </div>
-  </div>
-</div>
-
-<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
-
-<div class="gameover" id="gameover" hidden aria-hidden="true">
-  <div class="gameover__panel" role="dialog" aria-label="Game over">
-    <div class="gameover__head">
-      <span class="gameover__tag">Flight Debrief</span>
-      <h2 class="gameover__title">You blew up</h2>
-      <span class="gameover__rule" aria-hidden="true"></span>
-    </div>
-    <p class="gameover__sub" id="goSub"></p>
-    <div class="gameover__stats" id="goStats"></div>
-    <div class="gameover__name">
-      <label for="goName">Your initials</label>
-      <input type="text" id="goName" maxlength="3" autocomplete="off" spellcheck="false" placeholder="???" aria-label="Your initials for the leaderboard">
-    </div>
-    <div class="gameover__boards" id="goBoards"></div>
-    <div class="gameover__ach" id="goAch"></div>
-    <div class="gameover__actions">
-      <button type="button" class="gameover__btn gameover__btn--go" id="goAgain">Fly again</button>
-      <button type="button" class="gameover__btn" id="goClose">Done</button>
-    </div>
-  </div>
-</div>
-
-<!-- pillarStage hosts the 3D perspective flight mode rotates pageWorld (and
-     its mirrored backside clone) within, so the horizontal wrap reads as a
-     banner curving around a cylinder instead of a flat slide -->
-<div id="pillarStage">
-<!-- pageWorld wraps everything that scrolls — flight mode translates and
-     tilts it horizontally through a loop of blank space for left/right
-     wrapping around the pillar -->
-<div class="page-world" id="pageWorld">
-<main>
-
-<!-- ============ HERO ============ -->
-<section class="hero" id="hero" data-layer="Space" data-alt="Low Earth orbit &amp; beyond">
-  <div class="hero__media" aria-hidden="true">
-    <div class="hero__veil"></div>
-  </div>
-  <canvas id="starfield" class="hero__stars" aria-hidden="true"></canvas>
-
-  <div class="hero__inner">
-
-    <h1 class="hero__title">
-      <span class="reveal" data-d="2">Tyler</span>
-      <span class="reveal hero__title-em" data-d="3">Malone</span>
-    </h1>
-
-    <p class="hero__lede reveal" data-d="4">
-      Software Engineer specializing in full-stack development.
-    </p>
-
-    <dl class="hero__stats reveal" data-d="5">
-      <div class="stat">
-        <dt>Role</dt>
-        <dd>Software Engineer · Full-Stack · DevOps · AI / Agent Systems</dd>
-      </div>
-    </dl>
-  </div>
+<section aria-labelledby="about">
+  <h2 id="about">About</h2>
+  <p>I spent four years in the Marine Corps, where I planned field power and managed maintenance for a fleet of generators. After that I earned a computer science degree from Colorado State University (3.96 GPA) and was the founding engineer at WarTable.ai, an AI startup.</p>
+  <p>Today I run ContraptionSoft, a small software company in Benton, Arkansas that builds websites, custom software, and AI automation for small businesses.</p>
 </section>
 
-<!-- ============ ABOUT ============ -->
-<section class="section section--layer about" id="about" data-layer="Exosphere" data-alt="700–10,000 km">
-  <div class="section__bg" aria-hidden="true">
-    <div class="section__veil"></div>
-  </div>
-  <div class="section__head reveal-up">
-    <span class="section__idx">01</span>
-    <h2 class="section__title">About</h2>
-    <span class="section__rule" aria-hidden="true"></span>
-  </div>
+<section aria-labelledby="work">
+  <h2 id="work">Selected work</h2>
 
-  <div class="about__grid">
-    <div class="about__body">
-      <p class="lead">I am a full-stack software engineer. Most recently, I built WarTable.ai. I primarily work with Next.js, Nest.js, Prisma, and PostgreSQL, and I can handle projects from development through deployment. I have an appreciation for both chaotic and orderly working environments.</p>
-      <p>I served four years in the US Marine Corps as a refrigeration technician and later managed maintenance for a fleet of field-expedient utilities equipment, including generators, electrical distribution gear, ECUs, water-purification gear, and much more. I then studied computer science at Colorado State University, where I worked as a teaching assistant, conducted research, did a little game development, and spent a year on a robotics project.</p>
-    </div>
-    <figure class="about__figure reveal-up">
-      <div class="planet"><img src="assets/img/portrait.jpg" alt="Tyler Malone" /></div>
-      <figcaption>Tyler Malone</figcaption>
-    </figure>
-  </div>
+  <article class="job">
+    <h3>Order automation for a machine shop <span class="when">2026</span></h3>
+    <p class="role">Rusty's Machine &amp; Tool · Damascus, Arkansas</p>
+    <p>Reads the purchase orders customers send in and drafts the sales orders and job paperwork in the shop's accounting software. The owner reviews and approves each one before anything is saved. Entering an order went from about half an hour to under two minutes. <a href="https://contraptionsoft.com/#work">Read the case study</a></p>
+  </article>
+
+  <article class="job">
+    <h3>AI assistant for small businesses <span class="when">2025 – 2026</span></h3>
+    <p class="role"><a href="https://wartable.ai">WarTable.ai</a> · founding engineer</p>
+    <p>WarTable connects to a business's email, documents, and other apps (about 3,000 are supported) and gives the owner an assistant that can answer questions and take action across them. I built it from the first lines of code to a live product with paying customers: the assistant, the integrations, billing, and the cloud infrastructure.</p>
+  </article>
+
+  <article class="job">
+    <h3>Website for an excavation company <span class="when">2026</span></h3>
+    <p class="role">Malone Excavation · Benton, Arkansas</p>
+    <p>Design, copy, contact form, and local search setup for an owner-operated dirt work business. <a href="https://malonedigs.com">malonedigs.com</a></p>
+  </article>
+
+  <article class="job">
+    <h3>Citation checker for student papers <span class="when">2025</span></h3>
+    <p class="role">Colorado State University · Computer Science Department</p>
+    <p>Part of RamDesk, the department's grading platform. It reads the bibliography in a student's paper and flags any reference that can't be found anywhere, so instructors know what to look at. It has run more than 36,000 checks; the running count is on <a href="https://ramdesk.colostate.edu">RamDesk's sign-in page</a>.</p>
+  </article>
+
+  <article class="job">
+    <h3>Field power for a military headquarters <span class="when">2020 – 2021</span></h3>
+    <p class="role">U.S. Marine Corps · 4th Marine Regiment</p>
+    <p>Planned and ran the electrical power for a 200-person headquarters during field exercises: gathered what every section needed, sized about 20 generators, set it all up, and kept it running around the clock.</p>
+  </article>
+
+  <p>I've also contributed to <a href="https://github.com/PipedreamHQ/pipedream/pull/19984">Pipedream</a>, an open-source library of app integrations.</p>
 </section>
 
-<!-- ============ EXPERIENCE ============ -->
-<section class="section section--layer experience" id="experience">
-  <div class="section__head reveal-up">
-    <span class="section__idx">02</span>
-    <h2 class="section__title">Experience</h2>
-    <span class="section__rule" aria-hidden="true"></span>
-  </div>
-
-  <ol class="timeline">
-
-    <li class="entry reveal-up entry--scene" data-layer="Thermosphere" data-alt="80–700 km">
-      <div class="entry__bg" aria-hidden="true">
-        <div class="entry__veil"></div>
-      </div>
-      <div class="entry__meta">
-        <span class="entry__no">01</span>
-        <time class="entry__date">Jul 2025 – Jun 2026</time>
-      </div>
-      <div class="entry__main">
-        <h3 class="entry__org"><a href="https://wartable.ai" target="_blank" rel="noopener">WarTable</a> by Freestyle Consulting</h3>
-        <p class="entry__role">Software Engineer (Full-Stack &amp; DevOps), Contract</p>
-        <div class="entry__text">
-          <p>WarTable is an AI platform for small businesses. I took it from an empty repo to a live, monetized product with paying users, owning every layer myself.</p>
-        </div>
-        <ul class="tiles" aria-label="Highlights">
-          <li class="tile">
-            <span class="tile__cat">Agent</span>
-            <span class="tile__key">Athena</span>
-            <span class="tile__desc">Chat agent that takes actions across ~3,000 connected apps, with fine-grained tool control.</span>
-            <span class="tile__impact">The core of the product and its main draw for users.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Knowledge</span>
-            <span class="tile__key">Retrieval + memory</span>
-            <span class="tile__desc">ChromaDB retrieval over each user's synced docs, with memory across conversations.</span>
-            <span class="tile__impact">Answers grounded in the user's own data.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Automation</span>
-            <span class="tile__key">Health Index</span>
-            <span class="tile__desc">Multi-agent system that scores a business and generates prioritized tasks.</span>
-            <span class="tile__impact">Turns scattered business data into a list of what to fix.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Infrastructure</span>
-            <span class="tile__key">Billing + infra</span>
-            <span class="tile__desc">Credits and billing, multiple GCP environments, and CI/CD to Cloud Run.</span>
-            <span class="tile__impact">Ran in production and took payments.</span>
-          </li>
-        </ul>
-        <ul class="chips" aria-label="Technologies">
-          <li>Next.js</li><li>Nest.js</li><li>Prisma + PostgreSQL</li><li>GCP</li><li>Firebase</li><li>OpenRouter</li><li>Pipedream</li><li>Vapi</li><li>ChromaDB</li><li>mem0</li><li>Stripe</li>
-        </ul>
-      </div>
-    </li>
-
-    <li class="entry reveal-up entry--scene" data-layer="Mesosphere" data-alt="50–85 km">
-      <div class="entry__bg" aria-hidden="true">
-        <div class="entry__veil"></div>
-      </div>
-      <div class="entry__meta">
-        <span class="entry__no">02</span>
-        <time class="entry__date">Dec 2024 – Dec 2025</time>
-      </div>
-      <div class="entry__main">
-        <h3 class="entry__org"><a href="https://hyvv.io" target="_blank" rel="noopener">HYVV</a></h3>
-        <p class="entry__role">Software Engineer (Full-Stack &amp; DevOps), Contract</p>
-        <div class="entry__text">
-          <p>HYVV is a business platform. I built its first AI features, then took over the entire development pipeline when the rest of the team left.</p>
-        </div>
-        <ul class="tiles" aria-label="Highlights">
-          <li class="tile">
-            <span class="tile__cat">AI</span>
-            <span class="tile__key">Work agent</span>
-            <span class="tile__desc">Conversational agent that gathered context about users' businesses.</span>
-            <span class="tile__impact">The platform's first AI feature.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Generation</span>
-            <span class="tile__key">Product generator</span>
-            <span class="tile__desc">Generated whole products and features, images included, from a single prompt.</span>
-            <span class="tile__impact">Users could draft offerings without building them by hand.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Ownership</span>
-            <span class="tile__key">Sole engineer (temporarily)</span>
-            <span class="tile__desc">When the team scaled down, I ran GCP, CI/CD, and the database alone.</span>
-            <span class="tile__impact">Learned how to operate GCP and kept the platform shipping.</span>
-          </li>
-        </ul>
-        <ul class="chips" aria-label="Technologies">
-          <li>OpenAI API</li><li>Structured Output</li><li>Next.js</li><li>Node.js</li><li>Express</li><li>Prisma + PostgreSQL</li><li>GCP</li><li>Stripe</li><li>GitHub Actions</li><li>CI/CD</li>
-        </ul>
-      </div>
-    </li>
-
-    <li class="entry reveal-up entry--scene" data-layer="Stratosphere" data-alt="12–50 km">
-      <div class="entry__bg" aria-hidden="true">
-        <div class="entry__veil"></div>
-      </div>
-      <div class="entry__meta">
-        <span class="entry__no">03</span>
-        <time class="entry__date">Jan 2025 – Aug 2025</time>
-      </div>
-      <div class="entry__main">
-        <h3 class="entry__org">Project Sustain, Colorado State University</h3>
-        <p class="entry__role">Software Engineer &amp; Research Assistant</p>
-        <div class="entry__text">
-          <p>Project Sustain is a research group in CSU's computer science department. I built data tooling and AI features across its platforms and earned the REI Undergraduate Research Stipend.</p>
-        </div>
-        <ul class="tiles" aria-label="Highlights">
-          <li class="tile">
-            <span class="tile__cat">Analytics</span>
-            <span class="tile__key">Stats suite</span>
-            <span class="tile__desc">Python endpoints powering <a href="https://ramdesk.colostate.edu/" target="_blank" rel="noopener">RamDesk</a> graphs of grades, submissions, and timing.</span>
-            <span class="tile__impact">Enabled faculty and researchers to study patterns in student behavior and performance.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Integrity</span>
-            <span class="tile__key">Citation checker</span>
-            <span class="tile__desc">Checks a paper's references against the open web, flagging one only when nothing checks out. Ran in Docker across worker machines.</span>
-            <span class="tile__impact">Cut manual bibliography review for hundreds of student papers while keeping false alarms low.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Canvas LMS</span>
-            <span class="tile__key">Grading tools</span>
-            <span class="tile__desc">Grading and inspection features, admin views, and faster replacements for the slow Canvas UI.</span>
-            <span class="tile__impact">Less faculty time lost fighting the Canvas interface.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Robotics</span>
-            <span class="tile__key">HoneyComb</span>
-            <span class="tile__desc">Contributed to a UAV swarm system for agricultural intelligence.</span>
-            <span class="tile__impact">Hands-on work with multi-drone coordination.</span>
-          </li>
-        </ul>
-        <ul class="chips" aria-label="Technologies">
-          <li>Python</li><li>Flask</li><li>React</li><li>MongoDB</li><li>OpenAI API</li><li>Structured Output</li><li>Selenium</li><li>Docker</li><li>Canvas API</li><li>Web Scraping</li><li>Data Viz</li><li>UAV Systems</li>
-        </ul>
-      </div>
-    </li>
-
-    <li class="entry reveal-up entry--scene" data-layer="Alpine" data-alt="4,000 m">
-      <div class="entry__bg" aria-hidden="true">
-        <div class="entry__veil"></div>
-      </div>
-      <div class="entry__meta">
-        <span class="entry__no">05</span>
-        <time class="entry__date">Jan 2024 – Dec 2025</time>
-      </div>
-      <div class="entry__main">
-        <h3 class="entry__org">CSU Robotics Lab</h3>
-        <p class="entry__role">Robotics Research Volunteer</p>
-        <div class="entry__text">
-          <p>A year of volunteer robotics research at CSU, taken for the chance to work with expensive hardware: an old ROS Fetch robot and a newer ROS2 one.</p>
-        </div>
-        <ul class="tiles" aria-label="Highlights">
-          <li class="tile">
-            <span class="tile__cat">Simulation</span>
-            <span class="tile__key">Fetch in sim</span>
-            <span class="tile__desc">A month in the ROS and Fetch docs learning to drive and debug the robot in Gazebo and RViz.</span>
-            <span class="tile__impact">Gained the trust and confidence of the head of the lab.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Hardware</span>
-            <span class="tile__key">On the metal</span>
-            <span class="tile__desc">Verified the physical Fetch still worked after its operator left, with scripts to reset it to safe positions.</span>
-            <span class="tile__impact">Lab was ready for robot demos again.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Mapping</span>
-            <span class="tile__key">SLAM the building</span>
-            <span class="tile__desc">Built an occupancy map of the CS building lobby from LIDAR and laser scans, marking no-go zones.</span>
-            <span class="tile__impact">Produced a navigation map that could be used for demos in the computer science lobby.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Demo</span>
-            <span class="tile__key">Halloween demo</span>
-            <span class="tile__desc">Fetch used YOLO to find a person, navigated to them, and handed them candy.</span>
-            <span class="tile__impact">Got the department excited about AI and robotics, and fostered interest in others looking to join the lab.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Integration</span>
-            <span class="tile__key">Unity to ROS2</span>
-            <span class="tile__desc">Started a bridge from the Unity engine to ROS2 for TurtleBot research.</span>
-            <span class="tile__impact">Opened up XR + robotics research options for the lab.</span>
-          </li>
-        </ul>
-        <ul class="chips" aria-label="Technologies">
-          <li>ROS</li><li>ROS2</li><li>Gazebo</li><li>RViz</li><li>Python 2/3</li><li>YOLO</li><li>Unity</li><li>XR</li><li>LIDAR</li><li>SLAM</li>
-        </ul>
-      </div>
-    </li>
-
-    <li class="entry reveal-up entry--scene" data-layer="Cloud Line" data-alt="5,000 m">
-      <div class="entry__bg" aria-hidden="true">
-        <div class="entry__veil"></div>
-      </div>
-      <div class="entry__meta">
-        <span class="entry__no">04</span>
-        <time class="entry__date">Aug 2023 – Dec 2025</time>
-      </div>
-      <div class="entry__main">
-        <h3 class="entry__org">Colorado State University</h3>
-        <p class="entry__role">Undergraduate Teaching Assistant</p>
-        <div class="entry__text">
-          <p>Five semesters as a teaching assistant at CSU, in front of the classroom and behind the curriculum.</p>
-        </div>
-        <ul class="tiles" aria-label="Highlights">
-          <li class="tile">
-            <span class="tile__cat">Teaching</span>
-            <span class="tile__key">Three courses</span>
-            <span class="tile__desc">Python, Java, and Software Development.</span>
-            <span class="tile__impact">Covered the core of the intro CS sequence.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Reach</span>
-            <span class="tile__key">200+ students</span>
-            <span class="tile__desc">Mentored each semester in coding, debugging, and software best practices.</span>
-            <span class="tile__impact">Met lots of cool people and learned a lot for myself.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Curriculum</span>
-            <span class="tile__key">Wrote the assignments</span>
-            <span class="tile__desc">Working with a new instructor, wrote every programming assignment, spec to starter code to solutions, once we settled each topic together.</span>
-            <span class="tile__impact">Built a cool practical intro series to user/item-based collaborative filtering.</span>
-          </li>
-        </ul>
-        <ul class="chips" aria-label="Technologies">
-          <li>Teaching</li><li>Public Speaking</li><li>Mentorship</li><li>Python</li><li>Java</li><li>Software Development</li>
-        </ul>
-      </div>
-    </li>
-
-    <li class="entry reveal-up entry--scene" data-layer="High Desert" data-alt="1,500 m">
-      <div class="entry__bg" aria-hidden="true">
-        <div class="entry__veil"></div>
-      </div>
-      <div class="entry__meta">
-        <span class="entry__no">06</span>
-        <time class="entry__date">Oct 2018 – Oct 2022</time>
-      </div>
-      <div class="entry__main">
-        <h3 class="entry__org">US Marine Corps</h3>
-        <p class="entry__role">Refrigeration Technician · Utilities Operations SNCO · Utilities Quality Control SNCO</p>
-        <div class="entry__text">
-          <p>Four years in the Marine Corps, 4th Marines, 3rd Marine Division, as a Meritorious Corporal. I went from fixing refrigeration to managing maintenance for a whole fleet of utilities gear, and started coding in my off time.</p>
-        </div>
-        <ul class="tiles" aria-label="Highlights">
-          <li class="tile">
-            <span class="tile__cat">Craft</span>
-            <span class="tile__key">Refrigeration tech</span>
-            <span class="tile__desc">HVAC/R, schematics, and troubleshooting that grew into generators, electrical, and water purification.</span>
-            <span class="tile__impact">Became a go-to across the section's utilities gear.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Leadership</span>
-            <span class="tile__key">50+ generator fleet</span>
-            <span class="tile__desc">As Quality Control NCO, brought the AMMPS fleet (1.5–60kW) back under control from a broken program.</span>
-            <span class="tile__impact">Kept the fleet mission-ready and the maintenance program running clean.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Field ops</span>
-            <span class="tile__key">MWX power plan</span>
-            <span class="tile__desc">Designed the power plan and packing list for the Corps' largest field exercise, at 29 Palms.</span>
-            <span class="tile__impact">Powered major forward establishments in exercise.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Field</span>
-            <span class="tile__key">Kept power up</span>
-            <span class="tile__desc">Nursed a failing backup generator by hand for three days when no parts could reach the field.</span>
-            <span class="tile__impact">Comms and fire-support teams stayed online and our forward COC remained notionally alive.</span>
-          </li>
-          <li class="tile">
-            <span class="tile__cat">Recognition</span>
-            <span class="tile__key">Soochow Creek Medal</span>
-            <span class="tile__desc">Awarded for keeping maintenance running through COVID, with meritorious promotions and a 292/300 PFT.</span>
-            <span class="tile__impact">Recognized at the regimental level for the work.</span>
-          </li>
-        </ul>
-        <ul class="chips" aria-label="Technologies">
-          <li>Leadership</li><li>Maintenance Management</li><li>Power Generation</li><li>HVAC/R</li><li>Diesel Generators</li><li>Electrical Systems</li><li>Troubleshooting</li><li>Logistics</li>
-        </ul>
-      </div>
-    </li>
-
-  </ol>
-</section>
-
-<!-- ============ PROJECTS ============ -->
-<section class="section section--layer projects" id="projects" data-layer="Foothills" data-alt="2,000 m">
-  <div class="section__bg" aria-hidden="true">
-    <div class="section__veil"></div>
-  </div>
-  <div class="section__head reveal-up">
-    <span class="section__idx">03</span>
-    <h2 class="section__title">Recent Side Projects</h2>
-    <span class="section__rule" aria-hidden="true"></span>
-  </div>
-
-  <div class="proj-grid">
-    <article class="proj reveal-up">
-      <a href="https://www.roblox.com/games/96097818365463/Farkle" target="_blank" rel="noopener" aria-label="Open Farkle on Roblox">
-        <div class="proj__media">
-          <img src="https://tr.rbxcdn.com/180DAY-50d41544b63950a19f858150bf25919c/500/280/Image/Jpeg/noFilter" alt="Farkle on Roblox" />
-        </div>
-        <div class="proj__body">
-          <div class="proj__top">
-            <h3 class="proj__title">Farkle</h3>
-            <span class="proj__arrow" aria-hidden="true">↗</span>
-          </div>
-          <p class="proj__date">Released Aug 2026 · Roblox</p>
-          <p class="proj__desc">A neon dice-table version of Farkle: roll big, bank smart, and race to 5,000 before your opponent does. Play against a friend or take on Sir Reginald while the arena shifts colors and the soundtrack gets increasingly unhinged.</p>
-          <ul class="chips" aria-label="Project details">
-            <li>Roblox</li><li>Multiplayer</li><li>Dice Game</li><li>Game Design</li>
-          </ul>
-        </div>
-      </a>
-    </article>
-  </div>
-</section>
-
-<!-- ============ EDUCATION ============ -->
-<section class="section section--layer section--hills education" id="education" data-layer="Rolling Hills" data-alt="800 m">
-  <div class="section__bg" aria-hidden="true">
-    <div class="section__veil"></div>
-  </div>
-  <div class="section__head reveal-up">
-    <span class="section__idx">04</span>
-    <h2 class="section__title">Education</h2>
-    <span class="section__rule" aria-hidden="true"></span>
-  </div>
-
-  <div class="edu-card reveal-up">
-    <div class="edu-card__left">
-      <h3 class="edu-card__org">Colorado State University</h3>
-      <p class="edu-card__deg">B.S. Computer Science</p>
-      <p class="edu-card__date">Jan 2023 – Dec 2025</p>
-    </div>
-    <div class="edu-card__right">
-      <div class="gpa">
-        <span class="gpa__num">3.96</span>
-        <span class="gpa__den">/ 4.0 GPA</span>
-      </div>
-      <p class="edu-card__note">Graduated December 2025. Relevant coursework: Machine Learning · Reinforcement Learning · Distributed Systems (P2P and Cluster Computing) · AI Agents · Software Engineering · System Security · Game Design.</p>
-    </div>
-  </div>
-</section>
-
-<!-- ============ SKILLS ============ -->
-<section class="section section--layer section--lake skills" id="skills" data-layer="Lakeshore" data-alt="150 m">
-  <div class="section__bg" aria-hidden="true">
-    <div class="section__veil"></div>
-  </div>
-  <div class="section__head reveal-up">
-    <span class="section__idx">05</span>
-    <h2 class="section__title">Skills</h2>
-    <span class="section__rule" aria-hidden="true"></span>
-  </div>
-
-  <dl class="skills-grid">
-    <div class="skillrow reveal-up"><dt>Languages</dt><dd><span>Python</span><span>TypeScript</span><span>JavaScript</span><span>Java</span></dd></div>
-    <div class="skillrow reveal-up"><dt>Frontend</dt><dd><span>React</span><span>Next.js</span></dd></div>
-    <div class="skillrow reveal-up"><dt>Backend</dt><dd><span>Node.js</span><span>Express</span><span>NestJS</span><span>FastAPI</span><span>Flask</span></dd></div>
-    <div class="skillrow reveal-up"><dt>Databases &amp; ORM</dt><dd><span>PostgreSQL</span><span>Prisma</span><span>MongoDB</span><span>ChromaDB</span></dd></div>
-    <div class="skillrow reveal-up"><dt>Cloud &amp; DevOps</dt><dd><span>GCP</span><span>AWS</span><span>Azure</span><span>Cloud Run</span><span>Docker</span><span>GitHub Actions</span><span>CI/CD</span></dd></div>
-    <div class="skillrow reveal-up"><dt>AI &amp; Agents</dt><dd><span>Agentic AI</span><span>RAG</span><span>MCP</span><span>OpenAI API</span><span>OpenRouter</span><span>Structured Output</span><span>mem0</span><span>Reinforcement Learning</span></dd></div>
-    <div class="skillrow reveal-up"><dt>Robotics &amp; CV</dt><dd><span>ROS</span><span>ROS2</span><span>Gazebo</span><span>RViz</span><span>YOLO</span><span>Unity</span><span>Computer Vision</span></dd></div>
-    <div class="skillrow reveal-up"><dt>Integrations &amp; Realtime</dt><dd><span>Pipedream</span><span>Stripe</span><span>Vapi</span><span>Firebase</span><span>WebSockets</span><span>Canvas API</span><span>Selenium</span></dd></div>
-    <div class="skillrow reveal-up"><dt>Data &amp; Distributed Systems</dt><dd><span>Distributed Systems</span><span>Peer-to-Peer Systems</span><span>Spark</span><span>HDFS</span><span>Data Visualization</span></dd></div>
-    <div class="skillrow reveal-up"><dt>Methodologies</dt><dd><span>TDD</span><span>Agile</span><span>Git</span></dd></div>
-    <div class="skillrow reveal-up"><dt>Soft Skills</dt><dd><span>Communication</span><span>Leadership</span><span>Problem-Solving</span><span>Mentorship</span></dd></div>
-  </dl>
-</section>
-
-<!-- ============ SERVICE RECORD ============ -->
-<section class="section section--layer section--coast service" id="service" data-layer="Coast" data-alt="Sea level">
-  <div class="section__bg" aria-hidden="true">
-    <div class="section__veil"></div>
-  </div>
-  <div class="section__head reveal-up">
-    <span class="section__idx">06</span>
-    <h2 class="section__title">Service Record</h2>
-    <span class="section__rule" aria-hidden="true"></span>
-  </div>
-
-  <figure class="about__figure reveal-up">
-      <div class="planet"><img src="assets/img/corps.JPG" alt="Tyler Malone" /></div>
-      <figcaption>Tyler Malone</figcaption>
-  </figure>
-
-  <div class="service__grid">
-
-    <div class="medal-group reveal-up">
-      <h3 class="medal-group__title">Technical Training</h3>
-      <ul class="record-list">
-        <li>Basic Refrigeration And Air Conditioning Technician's Course</li>
-        <li>Advanced Engineer Equipment Electrical Systems Technician's Course</li>
-      </ul>
-    </div>
-
-    <div class="medal-group reveal-up">
-      <h3 class="medal-group__title">Military Awards</h3>
-      <ul class="record-list record-list--desc">
-        <li><span class="record__name">National Defense Service Medal</span><span class="record__desc">Awarded for active federal service in the armed forces between June 27, 1950 – July 1954; Jan. 1, 1961 – Aug. 14, 1974; and from Aug. 2, 1990 – Dec. 31, 2022.</span></li>
-        <li><span class="record__name">Marine Corps Good Conduct Medal</span><span class="record__desc">Awarded to Marines after three consecutive years of honorable and faithful service.</span></li>
-        <li><span class="record__name">USMC Sea Service Deployment Ribbon (x3)</span><span class="record__desc">Awarded to Marines who complete a deployment at sea or with an overseas unit.</span></li>
-        <li><span class="record__name">Global War on Terrorism Service Medal</span><span class="record__desc">Awarded to military personnel who have served in support of operations related to the Global War on Terrorism.</span></li>
-      </ul>
-    </div>
-
-    <div class="medal-group reveal-up">
-      <h3 class="medal-group__title">Special Military Recognitions</h3>
-      <ul class="record-list record-list--desc">
-        <li><span class="record__name">Meritorious Promotion to Noncommissioned Officer</span></li>
-        <li><span class="record__name">Soochow Creek Medal</span><span class="record__desc">Awarded by the 4th Marine Regiment Commanding Officer, Colonel Tracy, for exemplary performance of duties at the height of the COVID-19 pandemic.</span></li>
-        <li><span class="record__name">Meritorious Mast</span><span class="record__desc">Won 1st place in company shooting competition, after which I competed against the Japanese Self-Defense Forces in a joint-service shooting competition.</span></li>
-      </ul>
-    </div>
-
-  </div>
-</section>
-
-<!-- ============ CONTACT ============ -->
-<section class="section contact" id="contact" data-layer="Ocean" data-alt="Below sea level">
-  <div class="contact__media" aria-hidden="true">
-    <div class="contact__veil"></div>
-  </div>
-
-  <div class="contact__inner">
-    <span class="section__idx section__idx--light">07</span>
-    <h2 class="contact__title">Let's build<br /><em>something.</em></h2>
-
-    <p class="contact__lede">Always open to discussing new projects and interesting challenges.</p>
-
-    <ul class="contact__links">
-      <li>
-        <span class="contact__label">Email</span>
-        <a href="mailto:tyler@contraptionsoft.com">tyler@contraptionsoft.com</a>
-      </li>
-      <li>
-        <span class="contact__label">LinkedIn</span>
-        <a href="https://linkedin.com/in/tylermmalone" target="_blank" rel="noopener">linkedin.com/in/tylermmalone</a>
-      </li>
-      <li>
-        <span class="contact__label">GitHub</span>
-        <a href="https://github.com/19tylermalone94" target="_blank" rel="noopener">github.com/19tylermalone94</a>
-      </li>
-    </ul>
-  </div>
+<section aria-labelledby="contact">
+  <h2 id="contact">Contact</h2>
+  <p>The best way to reach me is email: <a href="mailto:tyler@contraptionsoft.com">tyler@contraptionsoft.com</a>. For ContraptionSoft work you can also call <a href="tel:+15013073446">(501) 307-3446</a>, or find me on <a href="https://www.linkedin.com/in/tylermmalone">LinkedIn</a>.</p>
 </section>
 
 </main>
-
-<footer class="foot">
-  <span class="foot__name">Tyler Malone</span>
-  <a href="#top" class="foot__top">Back to top ↑</a>
+<footer class="shell foot">
+  <p>© 2026 Tyler Malone</p>
 </footer>
-</div>
-</div>
-
-<!-- ============ MUSIC PLAYER ============ -->
-<div class="player is-collapsed" id="player" aria-label="Background music player">
-  <button type="button" class="player__btn player__btn--prev" id="plPrev" aria-label="Previous track" title="Previous">⏮</button>
-  <button type="button" class="player__btn player__btn--play" id="plPlay" aria-label="Play" aria-pressed="false" title="Play / pause">▶</button>
-  <button type="button" class="player__btn player__btn--next" id="plNext" aria-label="Next track" title="Next">⏭</button>
-  <div class="player__meta">
-    <span class="player__track" id="plTrack">—</span>
-    <span class="player__by">by Tyler Malone</span>
-  </div>
-  <span class="player__time" id="plCur">0:00</span>
-  <input type="range" class="player__seek" id="plSeek" min="0" max="1000" value="0" step="1" aria-label="Seek" />
-  <span class="player__time" id="plDur">0:00</span>
-</div>
-
-<script src="assets/js/main.js"></script>
 </body>
 </html>

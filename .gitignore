@@ -1,7 +1,0 @@
-# OS / editor
-.DS_Store
-*.pem
-*.log
-
-# vercel
-.vercel
