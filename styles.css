@@ -1,0 +1,108 @@
+/* Two inks on paper, borrowed from ContraptionSoft: ink, paper, and one orange
+   used for structure (rules and markers), never decoration. Light by default,
+   ContraptionSoft's charcoal when the system asks for dark. */
+
+:root {
+  --paper: #f6f2ec;
+  --ink: #1d1b1a;
+  --muted: #5f5850;
+  --rule: #ddd5ca;
+  --orange: #ee7620;
+  --orange-ink: #a24a0b; /* orange that passes contrast as text on paper */
+  --measure: 66ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #1a1817;
+    --ink: #ece8e3;
+    --muted: #9c948a;
+    --rule: #3a3634;
+    --orange-ink: #f2903f;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--paper); -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--orange); color: #14161a; }
+
+a { color: var(--orange-ink); text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--orange-ink); outline-offset: 3px; }
+
+.shell {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding-inline: 20px;
+}
+
+.intro { padding-block: 72px 24px; }
+
+h1 {
+  font-size: clamp(2.2rem, 7vw, 3rem);
+  line-height: 1.1;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+}
+
+.lede { font-size: 1.25rem; margin: 0 0 12px; }
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 20px;
+}
+
+section {
+  border-top: 2px solid var(--orange);
+  padding-block: 28px 8px;
+  margin-top: 28px;
+}
+
+h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin: 0 0 16px;
+}
+
+.job { margin-bottom: 28px; }
+
+h3 {
+  font-size: 1.1rem;
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.when { font-weight: 400; color: var(--muted); font-size: 0.95rem; }
+
+.role { margin: 2px 0 8px; color: var(--muted); }
+
+ul { margin: 0; padding-left: 20px; }
+li { margin: 6px 0; }
+li::marker { color: var(--orange); }
+
+ul.plain { list-style: none; padding: 0; }
+
+.foot {
+  border-top: 1px solid var(--rule);
+  margin-top: 40px;
+  padding-block: 20px 48px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
